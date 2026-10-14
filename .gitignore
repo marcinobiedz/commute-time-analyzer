@@ -1,0 +1,19 @@
+node_modules/
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+.env
+.env.local
+.DS_Store
+npm-debug.log*
+
+.claude/settings.local.json
+
+# Collected measurements — live collector output, never committed
+data/raw/
+
+# Two-model review workflow: live agent conversation, working-tree-only (never committed — avoids a commit loop)
+REVIEW.md
+REVIEW_RESPONSE.md

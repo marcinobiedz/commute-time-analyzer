@@ -1,5 +1,5 @@
 import type { CollectorConfig, RoutePair } from "./types"
-import { isRecord, parseJson, readRequiredString } from "./parse"
+import { isRecord, parseJson, readRequiredString, trimmedIfPresent } from "./parse"
 
 const DEFAULT_INTERVAL_MINUTES = 5
 const DEFAULT_TIMEZONE = "Europe/Warsaw"
@@ -24,17 +24,19 @@ export function parseConfig(env: Record<string, string | undefined>): CollectorC
 }
 
 function readApiKey(raw: string | undefined): string {
-  if (raw == null || raw.trim() === "") {
+  const value = trimmedIfPresent(raw)
+  if (value == null) {
     throw new Error("GOOGLE_MAPS_API_KEY is required")
   }
-  return raw
+  return value
 }
 
 function readPairs(raw: string | undefined): readonly RoutePair[] {
-  if (raw == null || raw.trim() === "") {
+  const value = trimmedIfPresent(raw)
+  if (value == null) {
     throw new Error("ROUTE_PAIRS is required: a JSON array of {id, label, origin, destination}")
   }
-  const pairs = parseJsonArray(raw, "ROUTE_PAIRS").map(readPair)
+  const pairs = parseJsonArray(value, "ROUTE_PAIRS").map(readPair)
   if (pairs.length === 0) {
     throw new Error("ROUTE_PAIRS must contain at least one pair")
   }
@@ -73,29 +75,31 @@ function requireUniquePairIds(pairs: readonly RoutePair[]): void {
 }
 
 function readInterval(raw: string | undefined): number {
-  if (raw == null || raw.trim() === "") {
+  const value = trimmedIfPresent(raw)
+  if (value == null) {
     return DEFAULT_INTERVAL_MINUTES
   }
-  const value = Number(raw)
-  if (!Number.isSafeInteger(value) || value <= 0) {
-    throw new Error(`SAMPLE_INTERVAL_MINUTES must be a positive whole number of minutes, got "${raw}"`)
+  const interval = Number(value)
+  if (!Number.isSafeInteger(interval) || interval <= 0) {
+    throw new Error(`SAMPLE_INTERVAL_MINUTES must be a positive whole number of minutes, got "${value}"`)
   }
-  return value
+  return interval
 }
 
 function readWindowMinutes(raw: string | undefined, fallback: number, field: string): number {
-  if (raw == null || raw.trim() === "") {
+  const value = trimmedIfPresent(raw)
+  if (value == null) {
     return fallback
   }
-  const match = CLOCK_PATTERN.exec(raw.trim())
+  const match = CLOCK_PATTERN.exec(value)
   if (match == null) {
-    throw new Error(`${field} must be a local clock time HH:MM (00:00–23:59), got "${raw}"`)
+    throw new Error(`${field} must be a local clock time HH:MM (00:00–23:59), got "${value}"`)
   }
   return Number(match[1]) * 60 + Number(match[2])
 }
 
 function readTimezone(raw: string | undefined): string {
-  const value = raw == null || raw.trim() === "" ? DEFAULT_TIMEZONE : raw.trim()
+  const value = trimmedIfPresent(raw) ?? DEFAULT_TIMEZONE
   try {
     Intl.DateTimeFormat("en-US", { timeZone: value })
   } catch {

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict"
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs"
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import path from "node:path"
 import { test } from "node:test"
@@ -61,13 +61,34 @@ test("missing directories are treated as empty, unreadable lines are rejected", 
   }
 })
 
-test("loadDashboardMeasurements memoizes and loads the committed corpus sorted", async () => {
-  const first = loadDashboardMeasurements()
-  assert.equal(loadDashboardMeasurements(), first)
-  const rows = await first
+test("committed corpus loads sorted through the default dirs", async () => {
+  const rows = await readMeasurementFiles(defaultDataDirs())
   assert.ok(rows.length >= 7720)
   for (let index = 1; index < rows.length; index++) {
     assert.ok(rows[index - 1].sampledAt <= rows[index].sampledAt)
   }
-  assert.ok(defaultDataDirs().length === 2)
+})
+
+test("loadDashboardMeasurements caches successes but retries after a rejected load", async () => {
+  const root = mkdtempSync(path.join(tmpdir(), "commute-cache-"))
+  const sampleDir = path.join(root, "data", "sample")
+  mkdirSync(sampleDir, { recursive: true })
+  const corpusFile = path.join(sampleDir, "2026-01-05.jsonl")
+  writeFileSync(corpusFile, "this is not json\n")
+  const previousCwd = process.cwd()
+  process.chdir(root)
+  try {
+    const firstLoad = loadDashboardMeasurements()
+    assert.equal(loadDashboardMeasurements(), firstLoad)
+    await assert.rejects(() => firstLoad)
+    writeFileSync(corpusFile, `${serializeRow(sampleRow("p1", "2026-01-05T06:00:00.000Z"))}\n`)
+    const retryLoad = loadDashboardMeasurements()
+    assert.notEqual(retryLoad, firstLoad)
+    const rows = await retryLoad
+    assert.deepEqual(rows.map((row) => row.pairId), ["p1"])
+    assert.equal(loadDashboardMeasurements(), retryLoad)
+  } finally {
+    process.chdir(previousCwd)
+    rmSync(root, { recursive: true, force: true })
+  }
 })

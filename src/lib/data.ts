@@ -21,9 +21,23 @@ let cachedDashboard: Promise<readonly Measurement[]> | null = null
 
 export function loadDashboardMeasurements(): Promise<readonly Measurement[]> {
   if (cachedDashboard == null) {
-    cachedDashboard = readMeasurementFiles(defaultDataDirs())
+    cachedDashboard = startCorpusLoad()
   }
   return cachedDashboard
+}
+
+function startCorpusLoad(): Promise<readonly Measurement[]> {
+  const load = readMeasurementFiles(defaultDataDirs())
+  cachedDashboard = load
+  load.then(
+    () => undefined,
+    () => {
+      if (cachedDashboard === load) {
+        cachedDashboard = null
+      }
+    },
+  )
+  return load
 }
 
 async function resolveJsonlPaths(dirs: readonly string[]): Promise<readonly string[]> {
@@ -42,7 +56,7 @@ async function resolveJsonlPaths(dirs: readonly string[]): Promise<readonly stri
 async function listJsonlFiles(dir: string): Promise<readonly string[]> {
   try {
     const entries = await readdir(dir)
-    return entries.filter((entry) => entry.endsWith(".jsonl")).sort((a, b) => a.localeCompare(b))
+    return entries.filter((entry) => entry.endsWith(".jsonl"))
   } catch (error: unknown) {
     if (isMissingDirectory(error)) {
       return []

@@ -19,9 +19,9 @@ function configWith(overrides: Record<string, unknown>): CollectorConfig {
 
 test("zonedParts converts an UTC instant to local weekday and minutes", () => {
   const justBeforeWarsawMidnightUtc = new Date("2026-10-16T21:59:00Z")
-  assert.deepEqual(zonedParts(justBeforeWarsawMidnightUtc, WARSAW), { weekdayIso: 5, minutesOfDay: 23 * 60 + 59 })
+  assert.deepEqual(zonedParts(justBeforeWarsawMidnightUtc, WARSAW), { weekdayIso: 5, isoDate: "2026-10-16", minutesOfDay: 23 * 60 + 59 })
   const justAfterWarsawMidnightUtc = new Date("2026-10-16T22:00:00Z")
-  assert.deepEqual(zonedParts(justAfterWarsawMidnightUtc, WARSAW), { weekdayIso: 6, minutesOfDay: 0 })
+  assert.deepEqual(zonedParts(justAfterWarsawMidnightUtc, WARSAW), { weekdayIso: 6, isoDate: "2026-10-17", minutesOfDay: 0 })
 })
 
 test("shouldSampleAt blocks weekends by local weekday not UTC", () => {

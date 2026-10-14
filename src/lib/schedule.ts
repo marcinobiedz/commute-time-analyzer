@@ -6,24 +6,43 @@ const WEEKDAY_ISO = new Map<string, number>([
 
 export type ZonedParts = {
   readonly weekdayIso: number
+  readonly isoDate: string
   readonly minutesOfDay: number
 }
 
-export function zonedParts(date: Date, timezone: string): ZonedParts {
+const FORMATTERS = new Map<string, Intl.DateTimeFormat>()
+
+function zonedFormatter(timezone: string): Intl.DateTimeFormat {
+  const existing = FORMATTERS.get(timezone)
+  if (existing != null) {
+    return existing
+  }
   const formatter = new Intl.DateTimeFormat("en-US", {
     timeZone: timezone,
     weekday: "short",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
     hourCycle: "h23",
   })
-  const parts = formatter.formatToParts(date)
+  FORMATTERS.set(timezone, formatter)
+  return formatter
+}
+
+export function zonedParts(date: Date, timezone: string): ZonedParts {
+  const parts = zonedFormatter(timezone).formatToParts(date)
   const weekday = readPart(parts, "weekday").slice(0, 3)
   const weekdayIso = WEEKDAY_ISO.get(weekday)
   if (weekdayIso == null) {
     throw new Error(`Unexpected weekday label "${weekday}" for timezone ${timezone}`)
   }
-  return { weekdayIso, minutesOfDay: Number(readPart(parts, "hour")) * 60 + Number(readPart(parts, "minute")) }
+  return {
+    weekdayIso,
+    isoDate: `${readPart(parts, "year")}-${readPart(parts, "month")}-${readPart(parts, "day")}`,
+    minutesOfDay: Number(readPart(parts, "hour")) * 60 + Number(readPart(parts, "minute")),
+  }
 }
 
 export type SamplingGate = {

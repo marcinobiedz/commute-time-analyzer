@@ -1,9 +1,8 @@
-import { existsSync } from "node:fs"
-import path from "node:path"
 import { parseConfig } from "../src/lib/config"
 import { collectMatrixSample } from "../src/lib/routes-matrix"
 import { buildMatrixLayout } from "../src/lib/routes-response"
 import { isRecord, trimmedIfPresent } from "../src/lib/parse"
+import { loadEnvFileIfExists } from "../src/lib/env-file"
 import type { MatrixOutcome, RoutesFailure } from "../src/lib/routes-matrix"
 import type { PairPosition } from "../src/lib/routes-response"
 import type { Measurement, RoutePair } from "../src/lib/types"
@@ -30,13 +29,6 @@ async function main(): Promise<void> {
   }
   const outcome = await collectMatrixSample(config, new Date().toISOString(), AbortSignal.timeout(120000))
   report(outcome)
-}
-
-function loadEnvFileIfExists(): void {
-  const envPath = path.join(process.cwd(), ".env.local")
-  if (existsSync(envPath)) {
-    process.loadEnvFile(envPath)
-  }
 }
 
 function installMockFetch(pairs: readonly RoutePair[]): void {

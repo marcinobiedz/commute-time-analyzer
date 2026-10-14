@@ -17,17 +17,26 @@ export function measurementFileName(sampledAt: string): string {
 
 export async function appendMeasurements(dir: string, measurements: readonly Measurement[]): Promise<void> {
   await ensureDataDir(dir)
-  const linesByFile = groupLinesByFile(measurements)
-  for (const [fileName, lines] of linesByFile) {
-    await appendFile(path.join(dir, fileName), lines)
+  const measurementsByFile = groupMeasurementsByUtcDay(measurements)
+  for (const [fileName, dayRows] of measurementsByFile) {
+    await appendFile(path.join(dir, fileName), serializeLines(dayRows))
   }
 }
 
-function groupLinesByFile(measurements: readonly Measurement[]): Map<string, string> {
-  const linesByFile = new Map<string, string>()
+export function groupMeasurementsByUtcDay(measurements: readonly Measurement[]): Map<string, readonly Measurement[]> {
+  const measurementsByFile = new Map<string, Measurement[]>()
   for (const measurement of measurements) {
     const fileName = measurementFileName(measurement.sampledAt)
-    linesByFile.set(fileName, (linesByFile.get(fileName) ?? "") + serializeMeasurement(measurement))
+    const dayRows = measurementsByFile.get(fileName)
+    if (dayRows == null) {
+      measurementsByFile.set(fileName, [measurement])
+      continue
+    }
+    dayRows.push(measurement)
   }
-  return linesByFile
+  return measurementsByFile
+}
+
+export function serializeLines(measurements: readonly Measurement[]): string {
+  return measurements.map(serializeMeasurement).join("")
 }

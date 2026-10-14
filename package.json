@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test \"src/**/*.test.ts\"",
     "check:key": "node --import tsx scripts/check-api-key.ts",
-    "collect": "node --import tsx scripts/collect.ts"
+    "collect": "node --import tsx scripts/collect.ts",
+    "fixtures": "node --import tsx scripts/generate-fixtures.ts"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

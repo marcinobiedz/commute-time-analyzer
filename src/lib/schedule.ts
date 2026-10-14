@@ -26,15 +26,25 @@ export function zonedParts(date: Date, timezone: string): ZonedParts {
   return { weekdayIso, minutesOfDay: Number(readPart(parts, "hour")) * 60 + Number(readPart(parts, "minute")) }
 }
 
-export function shouldSampleAt(date: Date, config: CollectorConfig): boolean {
-  const parts = zonedParts(date, config.timezone)
+export type SamplingGate = {
+  readonly sampleIntervalMinutes: number
+  readonly windowStartMinutes: number
+  readonly windowEndMinutes: number
+  readonly timezone: string
+}
+
+export function withinGate(parts: ZonedParts, gate: SamplingGate): boolean {
   if (parts.weekdayIso > 5) {
     return false
   }
-  if (parts.minutesOfDay < config.windowStartMinutes || parts.minutesOfDay > config.windowEndMinutes) {
+  if (parts.minutesOfDay < gate.windowStartMinutes || parts.minutesOfDay > gate.windowEndMinutes) {
     return false
   }
-  return parts.minutesOfDay % config.sampleIntervalMinutes === 0
+  return parts.minutesOfDay % gate.sampleIntervalMinutes === 0
+}
+
+export function shouldSampleAt(date: Date, config: CollectorConfig): boolean {
+  return withinGate(zonedParts(date, config.timezone), config)
 }
 
 function readPart(parts: Intl.DateTimeFormatPart[], type: Intl.DateTimeFormatPartTypes): string {

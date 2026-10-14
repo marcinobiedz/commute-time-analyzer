@@ -50,7 +50,7 @@
 |----|------|--------|--------|
 | T-001 | Collector foundation: `src/lib/types.ts` (measurement + config types), env/config parser with validation, JSONL line parse/serialize helpers — test harness dropped, human directive 2026-10-14 | 1dab381; fix R-001-1: 2949b99 + 254044a | APPROVED |
 | T-002 | Routes API client: `computeRouteMatrix` request builder, fetch with timeout/AbortSignal, response validation (`unknown` → typed), bounded retry/backoff, error classification — plus `node:test` harness + tests, human directive 2026-10-14; plus `scripts/check-api-key.ts` key-test CLI (`npm run check:key`, `--mock`), human directive 2026-10-14; fix R-002-1 API-contract rewrite + R-002-2 lint coverage | df34b66 → 86cb556 | APPROVED |
-| T-003 | Collector runner: `node-cron`-driven 5-min tick schedule (dep approved by human directive 2026-10-14; requires reviewer sign-off per AGENTS.md deps rule), weekday/window gate in configured timezone, append-only JSONL writer (crash-safe), tick orchestration (all pairs in one matrix call), structured logging, graceful shutdown, `npm run collect` | 6cea9ba; fix R-003-1/2: this commit | COMMITTED |
+| T-003 | Collector runner: `node-cron`-driven 5-min tick schedule (dep approved by human directive 2026-10-14; requires reviewer sign-off per AGENTS.md deps rule), weekday/window gate in configured timezone, append-only JSONL writer (crash-safe), tick orchestration (all pairs in one matrix call), structured logging, graceful shutdown, `npm run collect` | 6cea9ba → b9a21b1 | APPROVED |
 | T-004 | Fixture generator + sample data: script that synthesizes a realistic multi-week `data/sample/*.jsonl` history (weekday patterns, rush peaks, noise, some error ticks); committed so dashboard tasks have data | — | TODO |
 | T-005 | Dashboard data layer: memoized JSONL reader (streams `data/raw/` + `data/sample/`), pure aggregation functions (hour buckets, weekday×hour medians, percentiles, fastest window, expected-vs-actual sample grid) with tests | — | TODO |
 | T-006 | Dashboard UI — overview + time-of-day: pair selector (MUI), median/p10–p90 time-of-day chart (Recharts), fastest-window summary tiles, day-overlay chart | — | TODO |
@@ -63,6 +63,15 @@ Sequencing note: T-001→T-003 build the collector; T-004 unblocks T-005→T-007
 ## Escalations — awaiting human
 
 (none)
+
+## PAUSE POINT — 2026-10-14 (session 2 stop, human directive "stop at some point, I will clear session")
+
+All green work committed; nothing uncommitted except the ephemeral review files (by rule). State:
+
+- **T-001, T-002, T-003: APPROVED and closed** (flips: `92aba6a`, this commit for T-003 per its re-review's "ledger flip is the master's next expected commit"). **Open queue: none for the master to answer** — T-003 re-review arrived APPROVED before this stop.
+- **T-004 (fixture generator + sample data)** is next for the master on resume; then T-005→T-007 dashboard chain, T-008 docs, T-009 test backfill for T-001 boundaries.
+- Human owes: real `GOOGLE_MAPS_API_KEY` + `ROUTE_PAIRS` in `.env.local`, then `npm run check:key`; collector runs with `npm run collect` (tsx-direct, per directive).
+- Watchers: this session ends; next master session re-reads `REVIEW.md` first per the standing rule.
 
 ## PAUSE POINT — 2026-10-14 (superseded same day by resume; kept as history — see Master log)
 

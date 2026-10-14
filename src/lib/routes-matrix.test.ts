@@ -20,18 +20,17 @@ const CONFIG: CollectorConfig = {
   timezone: "Europe/Warsaw",
 }
 
-function okElement(originIndex: number, destinationIndex: number, seconds: string, meters: number): object {
+function okElement(originIndex: number, destinationIndex: number, traffic: string, statics: string, meters: number): Record<string, unknown> {
   return {
     originIndex,
     destinationIndex,
-    status: { code: 0 },
-    duration: { seconds },
+    duration: traffic,
+    staticDuration: statics,
     distanceMeters: meters,
-    travelAdvisory: { durationInTraffic: { seconds } },
   }
 }
 
-const VALID_BODY = JSON.stringify({ matrixElements: [okElement(0, 0, "900", 8000), okElement(1, 1, "600", 4000)] })
+const VALID_BODY = JSON.stringify([okElement(0, 0, "1000s", "900s", 8000), okElement(1, 1, "700s", "600s", 4000)])
 
 type StubbedFetch = { fetch: typeof globalThis.fetch; calls: () => number }
 
@@ -104,8 +103,8 @@ test("collectMatrixSample returns one measurement per pair on success", async ()
   assert.equal(calls, 1)
   assert.ok(outcome.ok)
   assert.deepEqual(outcome.measurements, [
-    { status: "ok", pairId: "work", sampledAt: SAMPLED_AT, durationSeconds: 900, durationInTrafficSeconds: 900, distanceMeters: 8000 },
-    { status: "ok", pairId: "shop", sampledAt: SAMPLED_AT, durationSeconds: 600, durationInTrafficSeconds: 600, distanceMeters: 4000 },
+    { status: "ok", pairId: "work", sampledAt: SAMPLED_AT, durationSeconds: 900, durationInTrafficSeconds: 1000, distanceMeters: 8000 },
+    { status: "ok", pairId: "shop", sampledAt: SAMPLED_AT, durationSeconds: 600, durationInTrafficSeconds: 700, distanceMeters: 4000 },
   ])
 })
 
@@ -124,9 +123,9 @@ test("client sends the api key and field mask headers plus a drive matrix body",
       throw new Error("fetch stub never saw a request")
     }
     assert.equal(request.headers.get("X-Goog-Api-Key"), "test-key")
-    assert.equal(request.headers.get("X-Goog-FieldMask")?.includes("travelAdvisory"), true)
+    assert.equal(request.headers.get("X-Goog-FieldMask"), "originIndex,destinationIndex,status,duration,staticDuration,distanceMeters")
     assert.equal(readBodyField(request.body, "travelMode"), "DRIVE")
-    assert.equal(readBodyField(request.body, "routingPreference") != null, true)
+    assert.equal(readBodyField(request.body, "routingPreference"), "TRAFFIC_AWARE")
     assert.equal(readArrayLength(request.body, "origins"), 2)
   } finally {
     globalThis.fetch = originalFetch
@@ -145,7 +144,7 @@ test("client-level dedup: shared origin collapses to one matrix origin", async (
   let sentBody = ""
   globalThis.fetch = async (_input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     sentBody = String(init?.body)
-    return new Response(JSON.stringify({ matrixElements: [] }), { status: 200 })
+    return new Response("[]", { status: 200 })
   }
   try {
     const outcome = await collectMatrixSample(sharedPairsConfig, SAMPLED_AT, NEVER_ABORTS)
@@ -204,7 +203,7 @@ test("non-JSON bodies are classified as invalid-response without retry", async (
   assert.equal(expectFailure(outcome).kind, "invalid-response")
 })
 
-test("JSON without matrixElements is classified as invalid-response", async () => {
+test("JSON object root instead of the documented array is classified as invalid-response", async () => {
   const stub = stubResponses(new Response("{}", { status: 200 }))
   const { outcome } = await runWith(stub, NEVER_ABORTS)
   assert.equal(expectFailure(outcome).kind, "invalid-response")

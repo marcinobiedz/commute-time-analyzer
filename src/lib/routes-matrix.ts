@@ -1,9 +1,8 @@
 import type { CollectorConfig, Measurement } from "./types"
-import { isRecord } from "./parse"
 import { buildMatrixLayout, parseMatrixElements, type MatrixLayout } from "./routes-response"
 
-const MATRIX_URL = "https://routes.googleapis.com/directions/v2:computeRoutesMatrix"
-const FIELD_MASK = "matrixElements.originIndex,matrixElements.destinationIndex,matrixElements.status,matrixElements.duration,matrixElements.distanceMeters,matrixElements.travelAdvisory"
+const MATRIX_URL = "https://routes.googleapis.com/distanceMatrix/v2:computeRouteMatrix"
+const FIELD_MASK = "originIndex,destinationIndex,status,duration,staticDuration,distanceMeters"
 const REQUEST_TIMEOUT_MS = 30000
 const RETRY_LIMIT = 3
 const BACKOFF_BASE_MS = 500
@@ -97,17 +96,13 @@ async function readMeasurements(response: Response, sampledAt: string, layout: M
   try {
     return { kind: "measurements", measurements: parseMatrixElements(body.value, sampledAt, layout) }
   } catch {
-    return { kind: "failure", failure: { kind: "invalid-response", detail: "matrixElements missing or malformed" } }
+    return { kind: "failure", failure: { kind: "invalid-response", detail: "matrix element array missing or malformed" } }
   }
 }
 
 async function readJsonBody(response: Response): Promise<{ kind: "json"; value: unknown } | { kind: "invalid"; detail: string }> {
   try {
-    const value: unknown = await response.json()
-    if (!isRecord(value)) {
-      return { kind: "invalid", detail: "response body is not a JSON object" }
-    }
-    return { kind: "json", value }
+    return { kind: "json", value: await response.json() }
   } catch {
     return { kind: "invalid", detail: "response body is not parseable JSON" }
   }
@@ -126,7 +121,7 @@ function buildBody(layout: MatrixLayout): string {
     origins: layout.origins.map(toWaypoint),
     destinations: layout.destinations.map(toWaypoint),
     travelMode: "DRIVE",
-    routingPreference: { trafficPreference: { trafficModel: "BEST_GUESS" } },
+    routingPreference: "TRAFFIC_AWARE",
   })
 }
 

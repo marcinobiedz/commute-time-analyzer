@@ -12,7 +12,8 @@ const DEFAULT_CHECK_PAIRS = JSON.stringify([
   { id: "key-check", label: "Key check", origin: "Palac Kultury i Nauki, Warszawa", destination: "Lotnisko Chopina, Warszawa" },
 ])
 const MOCK_API_KEY = "mock-key-never-sent"
-const MOCK_TRAFFIC_SECONDS = "900"
+const MOCK_TRAFFIC_SECONDS = "1012s"
+const MOCK_STATIC_SECONDS = "900s"
 
 async function main(): Promise<void> {
   const mock = process.argv.includes("--mock")
@@ -40,18 +41,17 @@ function loadEnvFileIfExists(): void {
 
 function installMockFetch(pairs: readonly RoutePair[]): void {
   const layout = buildMatrixLayout(pairs)
-  const body = JSON.stringify({ matrixElements: layout.positions.map(mockElement) })
+  const body = JSON.stringify(layout.positions.map(mockElement))
   globalThis.fetch = async (): Promise<Response> => new Response(body, { status: 200 })
 }
 
-function mockElement(position: PairPosition): object {
+function mockElement(position: PairPosition): Record<string, unknown> {
   return {
     originIndex: position.originIndex,
     destinationIndex: position.destinationIndex,
-    status: { code: 0 },
-    duration: { seconds: MOCK_TRAFFIC_SECONDS },
+    duration: MOCK_TRAFFIC_SECONDS,
+    staticDuration: MOCK_STATIC_SECONDS,
     distanceMeters: 8000,
-    travelAdvisory: { durationInTraffic: { seconds: MOCK_TRAFFIC_SECONDS } },
   }
 }
 

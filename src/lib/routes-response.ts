@@ -37,10 +37,10 @@ function nextIndex(indexByValue: Map<string, number>, value: string): number {
 }
 
 export function parseMatrixElements(value: unknown, sampledAt: string, layout: MatrixLayout): readonly Measurement[] {
-  if (!isRecord(value) || !Array.isArray(value.matrixElements)) {
-    throw new Error("Routes matrix response has no matrixElements array")
+  if (!Array.isArray(value)) {
+    throw new Error("Routes matrix response must be a JSON array of elements")
   }
-  const elementByPosition = buildPositionIndex(value.matrixElements)
+  const elementByPosition = buildPositionIndex(value)
   return layout.positions.map((position) =>
     toMeasurement(position, elementByPosition.get(positionKey(position.originIndex, position.destinationIndex)), sampledAt),
   )
@@ -92,29 +92,44 @@ type OkFields = {
 }
 
 function extractOkFields(element: Record<string, unknown>): OkFields | null {
-  const durationSeconds = parseDurationSeconds(element.duration)
-  const durationInTrafficSeconds = parseDurationSeconds(readTravelAdvisoryDuration(element))
+  const durationSeconds = parseDurationSeconds(element.staticDuration)
+  const durationInTrafficSeconds = parseDurationSeconds(element.duration)
   const distanceMeters = parseNonNegativeInteger(element.distanceMeters)
-  if (!isOkStatus(element.status) || durationSeconds == null || durationInTrafficSeconds == null || distanceMeters == null) {
+  if (!isSuccessStatus(element.status) || durationSeconds == null || durationInTrafficSeconds == null || distanceMeters == null) {
     return null
   }
   return { durationSeconds, durationInTrafficSeconds, distanceMeters }
 }
 
-function isOkStatus(value: unknown): boolean {
-  return isRecord(value) && value.code === 0
+function isSuccessStatus(value: unknown): boolean {
+  if (value == null) {
+    return true
+  }
+  return isRecord(value) && (value.code == null || value.code === 0)
 }
 
-function readTravelAdvisoryDuration(element: Record<string, unknown>): unknown {
-  if (!isRecord(element.travelAdvisory)) {
-    return undefined
-  }
-  return element.travelAdvisory.durationInTraffic
-}
+const DURATION_PATTERN = /^(\d+(?:\.\d+)?)s$/
 
 function parseDurationSeconds(value: unknown): number | null {
-  const seconds = isRecord(value) ? value.seconds : value
-  return parseNonNegativeInteger(seconds)
+  if (typeof value !== "string") {
+    return null
+  }
+  const match = DURATION_PATTERN.exec(value.trim())
+  if (match == null) {
+    return null
+  }
+  return roundToIntegerSeconds(Number(match[1]))
+}
+
+function roundToIntegerSeconds(seconds: number): number | null {
+  if (!Number.isFinite(seconds)) {
+    return null
+  }
+  const rounded = Math.round(seconds)
+  if (rounded < 0 || !Number.isSafeInteger(rounded)) {
+    return null
+  }
+  return rounded
 }
 
 function parseNonNegativeInteger(value: unknown): number | null {

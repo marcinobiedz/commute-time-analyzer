@@ -88,6 +88,16 @@ Session halted by human mid-T-002. State:
 4. Human owes later: real `GOOGLE_MAPS_API_KEY` + `ROUTE_PAIRS` in `.env.local` → run `npm run check:key` (script exists as WIP on disk).
 5. Reviewer re-arms on the first new commit after resume (their watcher was stopped at pause; they acknowledged).
 
+## PAUSE POINT — 2026-10-14 (session 3 stop, human directive "ok lets stop after this task")
+
+All green work committed; nothing uncommitted except the ephemeral review files (by rule 9). State:
+
+- **T-001…T-004: APPROVED and closed.** Session 3: T-004 built (`5dd3deb`), R-004-1/R-004-2 fixed (`9949a7f`), APPROVED; T-004 ledger flipped in the T-005 commit.
+- **T-005: COMMITTED, awaiting first review** — `d4467a7` (dashboard data layer). This is the open re-review item; NOT board-zero until it is reviewed. No findings are open against the master; nothing sits unanswered in `REVIEW_RESPONSE.md` (round-1 T-004 reply was accepted).
+- **Re-review queue / resume order for the next master session:** (1) re-read `REVIEW.md` — if `d4467a7` got `CHANGES_REQUESTED`, grep the finding ids and answer round 1 (fix commit + `REVIEW_RESPONSE.md`); if `APPROVED`, flip the T-005 row to `d4467a7 → <fix hashes>` with real hashes (fold into next task commit per the reviewer's process note). (2) Then T-006 dashboard UI (constraints already in the ledger from T-004/T-005 rounds: fastest-window tile should consider bucket sample count; plateau-step check for the day overlay; traffic ≥ static never assumed; data-quality page consumes `dailyDataQuality` rows as-is). (3) T-007, then T-008 docs pass, T-009 test backfill.
+- Human owes: real `GOOGLE_MAPS_API_KEY` + `ROUTE_PAIRS` in `.env.local` → `npm run check:key`; live data arrives via `npm run collect`. Reviewer watcher stays armed for `d4467a7`.
+- Master session watchers (REVIEW.md monitor) stopped at session end per human stop directive.
+
 ## Master log
 
 - **2026-10-14 — project reset (pre-ledger, human-directed).** The repo previously held a tourism-statistics analyzer (UN Tourism xlsx dataset). Human directive: pivot to the commute-time app described above. In the reset commit: all tourism code/data/docs deleted (`Bulk/`, `src/` app, `scripts/`, `docs/`, `public/`, `xlsx` dep dropped); `.claude/skills/{task-master,task-reviewer}` kept and neutralized (old-project finding references removed — they were already domain-free playbooks); AGENTS.md style/workflow/JS-baseline/React rules kept verbatim, data-contract and performance sections rewritten for this app; minimal Next scaffold (`src/app/{layout,page,globals.css}`) kept green; old REVIEW/REVIEW_RESPONSE threads discarded (working-tree-only by rule 9). This brief is the master's starting plan — no task has been claimed yet. A pending uncommitted whitespace-only edit to `task-reviewer/SKILL.md` from the previous project was absorbed into the reset.

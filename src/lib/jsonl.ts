@@ -1,7 +1,11 @@
-import type { Measurement } from "./types"
+import type { FailedMeasurement, Measurement } from "./types"
 import { isRecord, parseJson, readRequiredString } from "./parse"
 
 const UTC_ISO_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/
+
+export function failedMeasurement(pairId: string, sampledAt: string): FailedMeasurement {
+  return { status: "error", pairId, sampledAt, durationSeconds: null, durationInTrafficSeconds: null, distanceMeters: null }
+}
 
 export function serializeMeasurement(measurement: Measurement): string {
   return `${JSON.stringify(measurement)}\n`
@@ -22,7 +26,7 @@ export function parseMeasurementLine(line: string): Measurement {
     }
   }
   if (record.status === "error") {
-    return { status: "error", pairId, sampledAt, durationSeconds: null, durationInTrafficSeconds: null, distanceMeters: null }
+    return failedMeasurement(pairId, sampledAt)
   }
   throw new Error(`measurement status must be "ok" or "error", got ${JSON.stringify(record.status)}`)
 }

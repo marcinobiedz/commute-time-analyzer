@@ -16,7 +16,7 @@ export function measurementFileName(sampledAt: string): string {
 }
 
 export async function appendMeasurements(dir: string, measurements: readonly Measurement[]): Promise<void> {
-  await mkdir(dir, { recursive: true })
+  await ensureDataDir(dir)
   const linesByFile = groupLinesByFile(measurements)
   for (const [fileName, lines] of linesByFile) {
     await appendFile(path.join(dir, fileName), lines)

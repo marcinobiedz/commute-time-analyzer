@@ -1,5 +1,6 @@
 import type { Measurement, RoutePair } from "./types"
 import { isRecord } from "./parse"
+import { failedMeasurement } from "./jsonl"
 
 export type PairPosition = {
   readonly pairId: string
@@ -76,13 +77,9 @@ function positionKey(originIndex: number, destinationIndex: number): string {
 function toMeasurement(position: PairPosition, element: Record<string, unknown> | undefined, sampledAt: string): Measurement {
   const fields = element == null ? null : extractOkFields(element)
   if (fields == null) {
-    return errorRow(position.pairId, sampledAt)
+    return failedMeasurement(position.pairId, sampledAt)
   }
   return { status: "ok", pairId: position.pairId, sampledAt, ...fields }
-}
-
-function errorRow(pairId: string, sampledAt: string): Measurement {
-  return { status: "error", pairId, sampledAt, durationSeconds: null, durationInTrafficSeconds: null, distanceMeters: null }
 }
 
 type OkFields = {

@@ -6,7 +6,7 @@ import type { Measurement } from "./types"
 const MINUTES_PER_DAY = 1440
 const MILLISECONDS_PER_MINUTE = 60000
 
-export type FixturePair = {
+type FixturePair = {
   readonly pairId: string
   readonly distanceMeters: number
   readonly baseStaticSeconds: number
@@ -34,7 +34,7 @@ export const FIXTURE_GATE: SamplingGate = {
   timezone: "Europe/Warsaw",
 }
 
-export const FIXTURE_PAIRS: readonly FixturePair[] = [
+const FIXTURE_PAIRS: readonly FixturePair[] = [
   { pairId: "home-work", distanceMeters: 9400, baseStaticSeconds: 1080 },
   { pairId: "work-home", distanceMeters: 9400, baseStaticSeconds: 1020 },
 ]

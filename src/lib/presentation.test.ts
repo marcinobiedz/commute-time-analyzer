@@ -1,13 +1,20 @@
 import assert from "node:assert/strict"
 import { test } from "node:test"
 import {
+  buildControlsUrl,
+  controlOption,
   distinctLocalDates,
   distinctPairIds,
   formatClockLabel,
   formatDurationLabel,
+  heatStepIndex,
   hourRangeLabel,
+  hourShortLabel,
+  pickParam,
+  thresholdOption,
   timeOfDayRows,
   weekdayOfLocalDate,
+  weekdayShortName,
 } from "./presentation"
 import { zonedParts } from "./schedule"
 import type { HourProfilePoint } from "./aggregate"
@@ -60,4 +67,35 @@ test("weekdayOfLocalDate maps an ISO date to the ISO weekday at local noon", () 
   assert.equal(weekdayOfLocalDate("2026-08-17", "Europe/Warsaw"), 1)
   assert.equal(weekdayOfLocalDate("2026-08-21", "Europe/Warsaw"), 5)
   assert.equal(weekdayOfLocalDate("2026-08-22", "Europe/Warsaw"), 6)
+})
+
+test("pickParam keeps a known value and falls back otherwise", () => {
+  assert.equal(pickParam("b", ["a", "b", "c"], "a"), "b")
+  assert.equal(pickParam("z", ["a", "b", "c"], "a"), "a")
+  assert.equal(pickParam(undefined, ["a", "b"], "a"), "a")
+  assert.equal(pickParam(["a", "b"], ["a", "b"], "b"), "b")
+})
+
+test("buildControlsUrl merges params and overrides the touched one", () => {
+  assert.equal(buildControlsUrl("/patterns", { pair: "a", over: "1800" }, "pair", "b"), "/patterns?pair=b&over=1800")
+})
+
+test("thresholdOption and controlOption label values", () => {
+  assert.deepEqual(thresholdOption(1800), { value: "1800", label: "30 min" })
+  assert.deepEqual(controlOption("home-work"), { value: "home-work", label: "home-work" })
+})
+
+test("heatStepIndex scales value to a step band and clamps", () => {
+  assert.equal(heatStepIndex(1000, 1000, 3000, 7), 0)
+  assert.equal(heatStepIndex(2000, 1000, 3000, 7), 3)
+  assert.equal(heatStepIndex(3000, 1000, 3000, 7), 6)
+  assert.equal(heatStepIndex(5000, 1000, 3000, 7), 6)
+  assert.equal(heatStepIndex(100, 100, 100, 7), 0)
+})
+
+test("hour and weekday labels render two-digit and short names", () => {
+  assert.equal(hourShortLabel(5), "05")
+  assert.equal(hourShortLabel(15), "15")
+  assert.equal(weekdayShortName(1), "Mon")
+  assert.equal(weekdayShortName(5), "Fri")
 })

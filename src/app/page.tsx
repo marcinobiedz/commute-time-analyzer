@@ -4,15 +4,17 @@ import { parseSamplingGate } from "@/lib/config"
 import { loadDashboardMeasurements } from "@/lib/data"
 import { daySeries, overlayRows, weekdayBand } from "@/lib/day-overlay"
 import {
+  controlOption,
   distinctLocalDates,
   distinctPairIds,
   formatDurationLabel,
   hourRangeLabel,
+  pickParam,
   timeOfDayRows,
   weekdayOfLocalDate,
 } from "@/lib/presentation"
-import DashboardControls from "@/components/DashboardControls"
 import DayOverlayChart from "@/components/DayOverlayChart"
+import SelectControl from "@/components/SelectControl"
 import TimeOfDayChart from "@/components/TimeOfDayChart"
 import type { ReactNode } from "react"
 
@@ -20,12 +22,7 @@ type HomePageProps = {
   readonly searchParams: Promise<Record<string, string | string[] | undefined>>
 }
 
-function pickParam(raw: string | string[] | undefined, values: readonly string[], fallback: string): string {
-  if (typeof raw === "string" && values.includes(raw)) {
-    return raw
-  }
-  return fallback
-}
+const DEFAULT_OVER_THRESHOLD = "1800"
 
 function profileForPair(profile: readonly HourProfilePoint[], pairId: string): readonly HourProfilePoint[] {
   const points: HourProfilePoint[] = []
@@ -67,14 +64,15 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const dayValues = distinctLocalDates(measurements, gate.timezone)
   const pairId = pickParam(params.pair, pairValues, pairValues[0])
   const isoDate = pickParam(params.day, dayValues, dayValues[dayValues.length - 1])
+  const urlParams = { pair: pairId, day: isoDate }
+  const pairOptions = pairValues.map(controlOption)
+  const dayOptions = dayValues.map(controlOption)
   const pairProfile = profileForPair(hourProfile(measurements, gate), pairId)
   const reliableFastest = reliableFastestWindow(pairProfile)
   const note = sparseBucketNote(fastestWindow(pairProfile), reliableFastest)
   const profileRows = timeOfDayRows(pairProfile)
   const weekdayIso = weekdayOfLocalDate(isoDate, gate.timezone)
-  const series = daySeries(measurements, gate, pairId, isoDate)
-  const band = weekdayBand(measurements, gate, pairId, weekdayIso)
-  const overlayModel = overlayRows(series, band)
+  const overlayModel = overlayRows(daySeries(measurements, gate, pairId, isoDate), weekdayBand(measurements, gate, pairId, weekdayIso))
   return (
     <section className="space-y-8">
       <div>
@@ -82,8 +80,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         <p className="mt-1 text-sm text-[var(--muted)]">
           {pairValues.length} route pairs · {dayValues.length} days collected · data refreshes when the server restarts
         </p>
-        <div className="mt-4">
-          <DashboardControls pairValues={pairValues} selectedPair={pairId} dayValues={dayValues} selectedDay={isoDate} />
+        <div className="mt-4 flex flex-wrap items-center gap-4">
+          <SelectControl label="Route pair" name="pair" options={pairOptions} selected={pairId} params={urlParams} />
+          <SelectControl label="Day" name="day" options={dayOptions} selected={isoDate} params={urlParams} />
         </div>
       </div>
       <div className="rounded-lg border border-stone-200 p-4 dark:border-stone-800 sm:w-72">

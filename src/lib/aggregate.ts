@@ -37,9 +37,12 @@ export function percentileAt(sorted: readonly number[], percentile: number): num
   return sorted[rank - 1]
 }
 
+export function secondsByPairHour(measurements: readonly Measurement[], gate: SamplingGate): Map<string, number[]> {
+  return secondsBuckets(measurements, gate, pairHourKey)
+}
+
 export function hourProfile(measurements: readonly Measurement[], gate: SamplingGate): readonly HourProfilePoint[] {
-  const secondsByPairHour = secondsBuckets(measurements, gate, (pairId, parts) => `${pairId}|${Math.floor(parts.minutesOfDay / 60)}`)
-  const points = [...secondsByPairHour.entries()].map(([key, seconds]) => toHourProfilePoint(key, seconds))
+  const points = [...secondsByPairHour(measurements, gate).entries()].map(([key, seconds]) => toHourProfilePoint(key, seconds))
   return points.sort((a, b) => compareStrings(a.pairId, b.pairId) || a.hour - b.hour)
 }
 
@@ -98,6 +101,10 @@ export function dailyDataQuality(measurements: readonly Measurement[], gate: Sam
   return rows
 }
 
+function pairHourKey(pairId: string, parts: ZonedParts): string {
+  return `${pairId}|${Math.floor(parts.minutesOfDay / 60)}`
+}
+
 function secondsBuckets(
   measurements: readonly Measurement[],
   gate: SamplingGate,
@@ -120,12 +127,17 @@ function secondsBuckets(
   return buckets
 }
 
-function toHourProfilePoint(key: string, seconds: number[]): HourProfilePoint {
+export function decodePairHourKey(key: string): { pairId: string; hour: number } {
   const separator = key.lastIndexOf("|")
+  return { pairId: key.slice(0, separator), hour: Number(key.slice(separator + 1)) }
+}
+
+function toHourProfilePoint(key: string, seconds: number[]): HourProfilePoint {
+  const { pairId, hour } = decodePairHourKey(key)
   const sorted = [...seconds].sort((a, b) => a - b)
   return {
-    pairId: key.slice(0, separator),
-    hour: Number(key.slice(separator + 1)),
+    pairId,
+    hour,
     medianSeconds: percentileAt(sorted, 50),
     p10Seconds: percentileAt(sorted, 10),
     p90Seconds: percentileAt(sorted, 90),

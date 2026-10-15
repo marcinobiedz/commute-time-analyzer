@@ -1,5 +1,6 @@
 import type { TooltipValueType } from "recharts"
 import type { HourProfilePoint } from "./aggregate"
+import type { ReliabilityPoint } from "./reliability"
 import { compareStrings } from "./compare"
 import { zonedParts } from "./schedule"
 import type { Measurement } from "./types"
@@ -9,6 +10,52 @@ const MINUTES_PER_DAY = 1440
 export const HISTORY_COLOR = "#3987e5"
 export const DAY_COLOR = "#d95926"
 export const AXIS_INK = "#8a8178"
+
+export const HEATMAP_STEPS: readonly string[] = ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95", "#0d366b"]
+
+const WEEKDAY_NAMES: readonly string[] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+export type ControlOption = {
+  readonly value: string
+  readonly label: string
+}
+
+export function buildControlsUrl(pathname: string, params: Readonly<Record<string, string>>, name: string, value: string): string {
+  const search = new URLSearchParams({ ...params, [name]: value })
+  return `${pathname}?${search.toString()}`
+}
+
+export function pickParam(raw: string | string[] | undefined, values: readonly string[], fallback: string): string {
+  if (typeof raw === "string" && values.includes(raw)) {
+    return raw
+  }
+  return fallback
+}
+
+export function thresholdOption(seconds: number): ControlOption {
+  return { value: String(seconds), label: `${Math.floor(seconds / 60)} min` }
+}
+
+export function controlOption(value: string): ControlOption {
+  return { value, label: value }
+}
+
+export function hourShortLabel(hour: number): string {
+  return pad2(hour)
+}
+
+export function weekdayShortName(weekdayIso: number): string {
+  const name = WEEKDAY_NAMES[weekdayIso - 1]
+  return name == null ? String(weekdayIso) : name
+}
+
+export function heatStepIndex(value: number, minSeconds: number, maxSeconds: number, stepCount: number): number {
+  if (maxSeconds <= minSeconds) {
+    return 0
+  }
+  const scaled = Math.floor(((value - minSeconds) / (maxSeconds - minSeconds)) * stepCount)
+  return Math.min(scaled, stepCount - 1)
+}
 
 export const tooltipStyle = {
   contentStyle: { backgroundColor: "var(--bg)", border: "1px solid var(--muted)", borderRadius: 8, fontSize: 12 },
@@ -20,6 +67,22 @@ export type TimeOfDayRow = {
   readonly medianSeconds: number
   readonly bandSeconds: readonly [number, number]
   readonly samples: number
+}
+
+export type ReliabilityRow = {
+  readonly hourLabel: string
+  readonly spreadSeconds: number
+  readonly overPercent: number
+}
+
+export function reliabilityRows(points: readonly ReliabilityPoint[], pairId: string): readonly ReliabilityRow[] {
+  const rows: ReliabilityRow[] = []
+  for (const point of points) {
+    if (point.pairId === pairId) {
+      rows.push({ hourLabel: hourShortLabel(point.hour), spreadSeconds: point.spreadSeconds, overPercent: Math.round(point.overThresholdShare * 100) })
+    }
+  }
+  return rows
 }
 
 export function formatClockLabel(minutesOfDay: number): string {
@@ -38,6 +101,13 @@ export function formatDurationLabel(seconds: number): string {
 export function tooltipDuration(value: TooltipValueType | undefined): string {
   if (typeof value === "number") {
     return formatDurationLabel(value)
+  }
+  return value == null ? "—" : String(value)
+}
+
+export function tooltipPercent(value: TooltipValueType | undefined): string {
+  if (typeof value === "number") {
+    return `${value}%`
   }
   return value == null ? "—" : String(value)
 }

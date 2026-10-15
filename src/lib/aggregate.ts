@@ -86,7 +86,7 @@ export function dailyDataQuality(measurements: readonly Measurement[], gate: Sam
   const dates = [...countsByDate.keys()].sort(compareStrings)
   const rows: DailyQualityRow[] = []
   for (let date = dates[0]; date <= dates[dates.length - 1]; date = addUtcDays(date, 1)) {
-    if (weekdayIsoOfUtcDate(date) > 5) {
+    if (calendarWeekday(date) > 5) {
       continue
     }
     const counts = countsByDate.get(date) ?? { ok: 0, errors: 0 }
@@ -184,7 +184,7 @@ function addUtcDays(isoDate: string, days: number): string {
   return new Date(Date.parse(`${isoDate}T00:00:00Z`) + days * 86400000).toISOString().slice(0, 10)
 }
 
-function weekdayIsoOfUtcDate(isoDate: string): number {
+export function calendarWeekday(isoDate: string): number {
   const utcDay = new Date(`${isoDate}T00:00:00Z`).getUTCDay()
   return utcDay === 0 ? 7 : utcDay
 }

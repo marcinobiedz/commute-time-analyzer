@@ -1,9 +1,10 @@
 import assert from "node:assert/strict"
 import { test } from "node:test"
-import { dailyDataQuality, fastestWindow, hourProfile, percentileAt, reliableFastestWindow, weekdayHourMedians } from "./aggregate"
+import { calendarWeekday, dailyDataQuality, fastestWindow, hourProfile, percentileAt, reliableFastestWindow, weekdayHourMedians } from "./aggregate"
 import type { HourProfilePoint } from "./aggregate"
 import { defaultDataDirs, readMeasurementFiles } from "./data"
 import { FIXTURE_GATE } from "./fixtures"
+import { zonedParts } from "./schedule"
 import type { Measurement, OkMeasurement } from "./types"
 
 function okRow(pairId: string, sampledAt: string, trafficSeconds: number): OkMeasurement {
@@ -96,6 +97,20 @@ test("dailyDataQuality skips weekend dates inside the span", () => {
   const rows = [okRow("home-work", "2026-08-21T06:00:00.000Z", 1000), okRow("home-work", "2026-08-24T03:30:00.000Z", 1000)]
   const quality = dailyDataQuality(rows, FIXTURE_GATE)
   assert.deepEqual(quality.map((row) => row.date), ["2026-08-21", "2026-08-24"])
+})
+
+test("calendarWeekday reads the ISO weekday off the calendar date, timezone-independent", () => {
+  assert.equal(calendarWeekday("2026-08-17"), 1)
+  assert.equal(calendarWeekday("2026-08-21"), 5)
+  assert.equal(calendarWeekday("2026-08-22"), 6)
+  assert.equal(calendarWeekday("2026-08-23"), 7)
+  assert.equal(calendarWeekday("2026-08-24"), 1)
+})
+
+test("regression: the UTC-noon zonedParts instant shifted Monday at extreme offsets", () => {
+  assert.equal(calendarWeekday("2026-08-17"), 1)
+  assert.equal(zonedParts(new Date("2026-08-17T12:00:00Z"), "Pacific/Kiritimati").weekdayIso, 2)
+  assert.equal(zonedParts(new Date("2026-08-17T12:00:00Z"), "Pacific/Chatham").weekdayIso, 2)
 })
 
 test("aggregations match the committed fixture corpus", async () => {

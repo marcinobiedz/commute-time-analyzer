@@ -13,7 +13,6 @@ import {
   pickParam,
   thresholdOption,
   timeOfDayRows,
-  weekdayOfLocalDate,
   weekdayShortName,
 } from "./presentation"
 import { zonedParts } from "./schedule"
@@ -52,7 +51,7 @@ test("timeOfDayRows maps a profile point to display fields", () => {
   ])
 })
 
-test("distinct lists dedupe and sort", () => {
+test("distinctPairIds dedupes and sorts", () => {
   const rows: Measurement[] = [okRow("b", "2026-08-18T04:00:00.000Z"), okRow("a", "2026-08-17T04:00:00.000Z"), okRow("b", "2026-08-17T04:05:00.000Z")]
   assert.deepEqual(distinctPairIds(rows), ["a", "b"])
 })
@@ -61,12 +60,6 @@ test("distinctLocalDates groups a night tick under its local day", () => {
   const rows: Measurement[] = [okRow("a", "2026-08-16T22:30:00.000Z"), okRow("a", "2026-08-17T04:00:00.000Z")]
   assert.deepEqual(zonedParts(new Date("2026-08-16T22:30:00.000Z"), "Europe/Warsaw").isoDate, "2026-08-17")
   assert.deepEqual(distinctLocalDates(rows, "Europe/Warsaw"), ["2026-08-17"])
-})
-
-test("weekdayOfLocalDate maps an ISO date to the ISO weekday at local noon", () => {
-  assert.equal(weekdayOfLocalDate("2026-08-17", "Europe/Warsaw"), 1)
-  assert.equal(weekdayOfLocalDate("2026-08-21", "Europe/Warsaw"), 5)
-  assert.equal(weekdayOfLocalDate("2026-08-22", "Europe/Warsaw"), 6)
 })
 
 test("pickParam keeps a known value and falls back otherwise", () => {

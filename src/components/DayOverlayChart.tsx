@@ -1,7 +1,7 @@
 "use client"
 
 import type { DayOverlayRow } from "@/lib/day-overlay"
-import { AXIS_INK, DAY_COLOR, HISTORY_COLOR, formatClockLabel, formatDurationLabel, tooltipDuration, tooltipStyle } from "@/lib/presentation"
+import { DAY_COLOR, HISTORY_COLOR, formatClockLabel, formatDurationLabel, tooltipDuration, tooltipLineCursor, tooltipStyle } from "@/lib/presentation"
 import { CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 
 export default function DayOverlayChart({ rows }: { readonly rows: readonly DayOverlayRow[] }) {
@@ -12,7 +12,7 @@ export default function DayOverlayChart({ rows }: { readonly rows: readonly DayO
           <CartesianGrid horizontal vertical={false} />
           <XAxis dataKey="minutesOfDay" type="number" domain={["dataMin", "dataMax"]} tickFormatter={formatClockLabel} />
           <YAxis tickFormatter={formatDurationLabel} width={52} />
-          <Tooltip formatter={tooltipDuration} contentStyle={tooltipStyle.contentStyle} labelStyle={tooltipStyle.labelStyle} cursor={{ stroke: AXIS_INK, strokeDasharray: "3 3" }} />
+          <Tooltip formatter={tooltipDuration} contentStyle={tooltipStyle.contentStyle} labelStyle={tooltipStyle.labelStyle} cursor={tooltipLineCursor} />
           <Line dataKey="bandSeconds" type="stepAfter" stroke={HISTORY_COLOR} strokeWidth={2} strokeDasharray="6 4" dot={false} connectNulls isAnimationActive={false} name="hourly weekday median" />
           <Line dataKey="actualSeconds" type="linear" stroke={DAY_COLOR} strokeWidth={2} dot={false} connectNulls isAnimationActive={false} name="day samples" />
           <Legend wrapperStyle={{ fontSize: 12 }} />

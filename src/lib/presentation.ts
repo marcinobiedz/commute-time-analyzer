@@ -62,6 +62,9 @@ export const tooltipStyle = {
   labelStyle: { color: "var(--fg)", fontWeight: 600 },
 }
 
+export const tooltipLineCursor = { stroke: AXIS_INK, strokeDasharray: "3 3" }
+export const tooltipBarCursor = { fill: AXIS_INK, fillOpacity: 0.12 }
+
 export type TimeOfDayRow = {
   readonly hourLabel: string
   readonly medianSeconds: number
@@ -130,10 +133,6 @@ export function distinctLocalDates(measurements: readonly Measurement[], timezon
     dates.add(zonedParts(new Date(measurement.sampledAt), timezone).isoDate)
   }
   return [...dates].sort(compareStrings)
-}
-
-export function weekdayOfLocalDate(isoDate: string, timezone: string): number {
-  return zonedParts(new Date(`${isoDate}T12:00:00Z`), timezone).weekdayIso
 }
 
 function toTimeOfDayRow(point: HourProfilePoint): TimeOfDayRow {

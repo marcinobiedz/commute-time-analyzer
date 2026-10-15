@@ -1,7 +1,7 @@
 "use client"
 
 import type { ReliabilityRow } from "@/lib/presentation"
-import { AXIS_INK, DAY_COLOR, HISTORY_COLOR, formatDurationLabel, tooltipDuration, tooltipPercent, tooltipStyle } from "@/lib/presentation"
+import { DAY_COLOR, HISTORY_COLOR, formatDurationLabel, tooltipBarCursor, tooltipDuration, tooltipPercent, tooltipStyle } from "@/lib/presentation"
 import { Bar, CartesianGrid, ComposedChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 
 function percentTick(value: number): string {
@@ -17,7 +17,7 @@ export default function SpreadCharts({ rows, overThresholdLabel }: { readonly ro
             <CartesianGrid horizontal vertical={false} />
             <XAxis dataKey="hourLabel" />
             <YAxis tickFormatter={formatDurationLabel} width={52} />
-            <Tooltip formatter={tooltipDuration} contentStyle={tooltipStyle.contentStyle} labelStyle={tooltipStyle.labelStyle} cursor={{ fill: AXIS_INK, fillOpacity: 0.12 }} />
+            <Tooltip formatter={tooltipDuration} contentStyle={tooltipStyle.contentStyle} labelStyle={tooltipStyle.labelStyle} cursor={tooltipBarCursor} />
             <Bar dataKey="spreadSeconds" name="p90 − p10" fill={HISTORY_COLOR} radius={[4, 4, 0, 0]} isAnimationActive={false} />
           </ComposedChart>
         </ResponsiveContainer>
@@ -28,7 +28,7 @@ export default function SpreadCharts({ rows, overThresholdLabel }: { readonly ro
             <CartesianGrid horizontal vertical={false} />
             <XAxis dataKey="hourLabel" />
             <YAxis tickFormatter={percentTick} width={40} domain={[0, 100]} />
-            <Tooltip formatter={tooltipPercent} contentStyle={tooltipStyle.contentStyle} labelStyle={tooltipStyle.labelStyle} cursor={{ fill: AXIS_INK, fillOpacity: 0.12 }} />
+            <Tooltip formatter={tooltipPercent} contentStyle={tooltipStyle.contentStyle} labelStyle={tooltipStyle.labelStyle} cursor={tooltipBarCursor} />
             <Bar dataKey="overPercent" name={`over ${overThresholdLabel}`} fill={DAY_COLOR} radius={[4, 4, 0, 0]} isAnimationActive={false} />
           </ComposedChart>
         </ResponsiveContainer>

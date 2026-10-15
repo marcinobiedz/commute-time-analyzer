@@ -1,5 +1,5 @@
 import type { HourProfilePoint } from "@/lib/aggregate"
-import { fastestWindow, hourProfile, reliableFastestWindow } from "@/lib/aggregate"
+import { calendarWeekday, fastestWindow, hourProfile, reliableFastestWindow } from "@/lib/aggregate"
 import { parseSamplingGate } from "@/lib/config"
 import { loadDashboardMeasurements } from "@/lib/data"
 import { daySeries, overlayRows, weekdayBand } from "@/lib/day-overlay"
@@ -11,7 +11,6 @@ import {
   hourRangeLabel,
   pickParam,
   timeOfDayRows,
-  weekdayOfLocalDate,
 } from "@/lib/presentation"
 import DayOverlayChart from "@/components/DayOverlayChart"
 import SelectControl from "@/components/SelectControl"
@@ -71,7 +70,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const reliableFastest = reliableFastestWindow(pairProfile)
   const note = sparseBucketNote(fastestWindow(pairProfile), reliableFastest)
   const profileRows = timeOfDayRows(pairProfile)
-  const weekdayIso = weekdayOfLocalDate(isoDate, gate.timezone)
+  const weekdayIso = calendarWeekday(isoDate)
   const overlayModel = overlayRows(daySeries(measurements, gate, pairId, isoDate), weekdayBand(measurements, gate, pairId, weekdayIso))
   return (
     <section className="space-y-8">

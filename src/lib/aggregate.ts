@@ -59,6 +59,20 @@ export function fastestWindow(profile: readonly HourProfilePoint[]): HourProfile
   return fastest
 }
 
+export function reliableFastestWindow(profile: readonly HourProfilePoint[]): HourProfilePoint | null {
+  let densestSamples = 0
+  for (const point of profile) {
+    densestSamples = Math.max(densestSamples, point.samples)
+  }
+  const dense: HourProfilePoint[] = []
+  for (const point of profile) {
+    if (point.samples * 2 >= densestSamples) {
+      dense.push(point)
+    }
+  }
+  return fastestWindow(dense)
+}
+
 export function dailyDataQuality(measurements: readonly Measurement[], gate: SamplingGate): readonly DailyQualityRow[] {
   const countsByDate = countDaysByLocalDate(measurements, gate)
   if (countsByDate.size === 0) {

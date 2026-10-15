@@ -1,4 +1,5 @@
 import type { CollectorConfig, RoutePair } from "./types"
+import type { SamplingGate } from "./schedule"
 import { isRecord, parseJson, readRequiredString, trimmedIfPresent } from "./parse"
 
 const DEFAULT_INTERVAL_MINUTES = 5
@@ -7,19 +8,24 @@ const FULL_DAY_START_MINUTES = 0
 const FULL_DAY_END_MINUTES = 1439
 const CLOCK_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/
 
+export function parseSamplingGate(env: Record<string, string | undefined>): SamplingGate {
+  return {
+    sampleIntervalMinutes: readInterval(env.SAMPLE_INTERVAL_MINUTES),
+    windowStartMinutes: readWindowMinutes(env.WINDOW_START, FULL_DAY_START_MINUTES, "WINDOW_START"),
+    windowEndMinutes: readWindowMinutes(env.WINDOW_END, FULL_DAY_END_MINUTES, "WINDOW_END"),
+    timezone: readTimezone(env.TIMEZONE),
+  }
+}
+
 export function parseConfig(env: Record<string, string | undefined>): CollectorConfig {
-  const windowStartMinutes = readWindowMinutes(env.WINDOW_START, FULL_DAY_START_MINUTES, "WINDOW_START")
-  const windowEndMinutes = readWindowMinutes(env.WINDOW_END, FULL_DAY_END_MINUTES, "WINDOW_END")
-  if (windowStartMinutes > windowEndMinutes) {
+  const gate = parseSamplingGate(env)
+  if (gate.windowStartMinutes > gate.windowEndMinutes) {
     throw new Error(`WINDOW_START (${env.WINDOW_START}) must not be after WINDOW_END (${env.WINDOW_END})`)
   }
   return {
     apiKey: readApiKey(env.GOOGLE_MAPS_API_KEY),
     pairs: readPairs(env.ROUTE_PAIRS),
-    sampleIntervalMinutes: readInterval(env.SAMPLE_INTERVAL_MINUTES),
-    windowStartMinutes,
-    windowEndMinutes,
-    timezone: readTimezone(env.TIMEZONE),
+    ...gate,
   }
 }
 

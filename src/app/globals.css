@@ -21,3 +21,23 @@ body {
   color: var(--fg);
   font-family: ui-sans-serif, system-ui, sans-serif;
 }
+
+.dashboard-chart .recharts-cartesian-grid line {
+  stroke: var(--muted);
+  stroke-opacity: 0.35;
+}
+
+.dashboard-chart .recharts-cartesian-axis-line,
+.dashboard-chart .recharts-cartesian-axis-tick-line {
+  stroke: var(--muted);
+  stroke-opacity: 0.6;
+}
+
+.dashboard-chart .recharts-cartesian-axis-tick text {
+  fill: var(--muted);
+  font-size: 12px;
+}
+
+.dashboard-chart .recharts-legend-item-text {
+  color: var(--muted) !important;
+}

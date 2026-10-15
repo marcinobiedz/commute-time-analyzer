@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { test } from "node:test"
-import { dailyDataQuality, fastestWindow, hourProfile, percentileAt, weekdayHourMedians } from "./aggregate"
+import { dailyDataQuality, fastestWindow, hourProfile, percentileAt, reliableFastestWindow, weekdayHourMedians } from "./aggregate"
 import type { HourProfilePoint } from "./aggregate"
 import { defaultDataDirs, readMeasurementFiles } from "./data"
 import { FIXTURE_GATE } from "./fixtures"
@@ -65,6 +65,17 @@ test("fastestWindow returns the min-median point or null for empty profiles", ()
   ]
   assert.equal(fastestWindow(profile)?.hour, 5)
   assert.equal(fastestWindow([]), null)
+})
+
+test("reliableFastestWindow excludes buckets under half the densest sample count", () => {
+  const profile: readonly HourProfilePoint[] = [
+    { pairId: "z", hour: 5, medianSeconds: 1125, p10Seconds: 1050, p90Seconds: 1200, samples: 235 },
+    { pairId: "z", hour: 12, medianSeconds: 1200, p10Seconds: 1100, p90Seconds: 1300, samples: 240 },
+    { pairId: "z", hour: 21, medianSeconds: 1119, p10Seconds: 1119, p90Seconds: 1119, samples: 20 },
+  ]
+  assert.equal(fastestWindow(profile)?.hour, 21)
+  assert.equal(reliableFastestWindow(profile)?.hour, 5)
+  assert.equal(reliableFastestWindow([]), null)
 })
 
 test("dailyDataQuality counts per local weekday, spans gaps, and uses the gate window", () => {

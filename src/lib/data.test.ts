@@ -87,7 +87,31 @@ test("loadDashboardMeasurements caches successes but retries after a rejected lo
     assert.notEqual(retryLoad, firstLoad)
     const rows = await retryLoad
     assert.deepEqual(rows.map((row) => row.pairId), ["p1"])
-    assert.equal(loadDashboardMeasurements(), retryLoad)
+    assert.equal(await loadDashboardMeasurements(), rows)
+  } finally {
+    process.chdir(previousCwd)
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
+test("loadDashboardMeasurements picks up appended rows without a restart", async () => {
+  const root = mkdtempSync(path.join(tmpdir(), "commute-live-"))
+  const rawDir = path.join(root, "data", "raw")
+  mkdirSync(rawDir, { recursive: true })
+  const corpusFile = path.join(rawDir, "2026-01-06.jsonl")
+  const firstSample = "2026-01-06T06:00:00.000Z"
+  const secondSample = "2026-01-06T06:05:00.000Z"
+  writeFileSync(corpusFile, `${serializeRow(sampleRow("p1", firstSample))}\n`)
+  const previousCwd = process.cwd()
+  process.chdir(root)
+  try {
+    const firstLoad = await loadDashboardMeasurements()
+    assert.deepEqual(firstLoad.map((row) => row.sampledAt), [firstSample])
+    writeFileSync(corpusFile, `${serializeRow(sampleRow("p1", firstSample))}\n${serializeRow(sampleRow("p1", secondSample))}\n`)
+    const secondLoad = await loadDashboardMeasurements()
+    assert.deepEqual(secondLoad.map((row) => row.sampledAt), [firstSample, secondSample])
+    assert.notEqual(secondLoad, firstLoad)
+    assert.equal(await loadDashboardMeasurements(), secondLoad)
   } finally {
     process.chdir(previousCwd)
     rmSync(root, { recursive: true, force: true })

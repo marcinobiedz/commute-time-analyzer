@@ -149,7 +149,7 @@ test("client-level dedup: shared origin collapses to one matrix origin", async (
     assert.ok(outcome.ok)
     assert.equal(readArrayLength(sentBody, "origins"), 1)
     assert.equal(readArrayLength(sentBody, "destinations"), 2)
-    assert.deepEqual(outcome.measurements.map((measurement) => measurement.status), ["error", "error"])
+    assert.equal(outcome.measurements.length, 0)
   } finally {
     globalThis.fetch = originalFetch
   }

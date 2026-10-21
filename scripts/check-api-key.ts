@@ -5,7 +5,7 @@ import { buildMatrixLayout } from "../src/lib/routes-response"
 import { isRecord, trimmedIfPresent } from "../src/lib/parse"
 import type { MatrixOutcome, RoutesFailure } from "../src/lib/routes-matrix"
 import type { PairPosition } from "../src/lib/routes-response"
-import type { Measurement, RoutePair } from "../src/lib/types"
+import type { OkMeasurement, RoutePair } from "../src/lib/types"
 
 const MOCK_API_KEY = "mock-key-never-sent"
 const MOCK_TRAFFIC_SECONDS = "1012s"
@@ -23,7 +23,7 @@ async function main(): Promise<void> {
     console.log(`querying computeRoutesMatrix for ${config.pairs.length} pair(s) using GOOGLE_MAPS_API_KEY from the environment`)
   }
   const outcome = await collectMatrixSample(config, new Date().toISOString(), AbortSignal.timeout(120000))
-  report(outcome)
+  report(outcome, config.pairs.length)
 }
 
 function installMockFetch(pairs: readonly RoutePair[]): void {
@@ -42,7 +42,7 @@ function mockElement(position: PairPosition): Record<string, unknown> {
   }
 }
 
-function report(outcome: MatrixOutcome): void {
+function report(outcome: MatrixOutcome, requestedPairs: number): void {
   if (!outcome.ok) {
     console.error(`FAILED: ${describeFailure(outcome.failure)}`)
     process.exitCode = 1
@@ -51,19 +51,15 @@ function report(outcome: MatrixOutcome): void {
   for (const measurement of outcome.measurements) {
     console.log(describeMeasurement(measurement))
   }
-  const usable = outcome.measurements.filter((measurement) => measurement.status === "ok")
-  if (usable.length === 0) {
+  if (outcome.measurements.length === 0) {
     console.error("FAILED: HTTP 200 but no pair returned usable durations — check the coded commute pair addresses or API restrictions")
     process.exitCode = 1
     return
   }
-  console.log(`KEY OK: ${usable.length}/${outcome.measurements.length} pair(s) returned traffic-aware durations`)
+  console.log(`KEY OK: ${outcome.measurements.length}/${requestedPairs} pair(s) returned traffic-aware durations`)
 }
 
-function describeMeasurement(measurement: Measurement): string {
-  if (measurement.status === "error") {
-    return `${measurement.pairId}: no usable durations (error tick)`
-  }
+function describeMeasurement(measurement: OkMeasurement): string {
   return `${measurement.pairId}: static ${measurement.durationSeconds}s, in traffic ${measurement.durationInTrafficSeconds}s, ${measurement.distanceMeters}m`
 }
 

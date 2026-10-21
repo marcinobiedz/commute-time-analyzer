@@ -3,10 +3,10 @@ import { mkdtemp, readFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import path from "node:path"
 import { test } from "node:test"
-import type { CollectorConfig } from "./types"
+import type { CollectorConfig, Measurement } from "./types"
 import { parseMeasurementLine } from "./jsonl"
 import { appendMeasurements, measurementFileName } from "./collector-writer"
-import { errorRowsFor, runTick } from "./collector"
+import { runTick } from "./collector"
 
 const SAMPLED_AT = "2026-10-16T09:05:00.000Z"
 
@@ -24,6 +24,10 @@ async function tempDataDir(): Promise<string> {
   return await mkdtemp(path.join(tmpdir(), "collector-test-"))
 }
 
+function okRow(pairId: string, sampledAt: string): Measurement {
+  return { status: "ok", pairId, sampledAt, durationSeconds: 600, durationInTrafficSeconds: 700, distanceMeters: 5000 }
+}
+
 test("measurementFileName buckets by UTC date", () => {
   assert.equal(measurementFileName(SAMPLED_AT), "2026-10-16.jsonl")
   assert.equal(measurementFileName("2026-10-16T23:59:59.999Z"), "2026-10-16.jsonl")
@@ -32,9 +36,9 @@ test("measurementFileName buckets by UTC date", () => {
 
 test("appendMeasurements writes one parseable line per measurement, appended not overwritten", async () => {
   const dir = await tempDataDir()
-  const first = errorRowsFor(config.pairs, SAMPLED_AT)
+  const first = config.pairs.map((pair) => okRow(pair.id, SAMPLED_AT))
   await appendMeasurements(dir, first)
-  const later = errorRowsFor(config.pairs, "2026-10-16T09:10:00.000Z")
+  const later = config.pairs.map((pair) => okRow(pair.id, "2026-10-16T09:10:00.000Z"))
   await appendMeasurements(dir, later)
   const content = await readFile(path.join(dir, "2026-10-16.jsonl"), "utf8")
   const lines = content.trimEnd().split("\n")
@@ -115,7 +119,7 @@ test("runTick writes nothing when no pair window contains the tick", async () =>
   await assert.rejects(() => readFile(path.join(dir, "2026-10-16.jsonl"), "utf8"))
 })
 
-test("runTick records an error row per pair when the whole call fails", async () => {
+test("runTick writes nothing when the whole call fails", async () => {
   const dir = await tempDataDir()
   const originalFetch = globalThis.fetch
   globalThis.fetch = async (): Promise<Response> => new Response("denied", { status: 403, statusText: "Forbidden" })
@@ -125,9 +129,7 @@ test("runTick records an error row per pair when the whole call fails", async ()
     assert.equal(report.pairs, 2)
     assert.ok(report.failure != null)
     assert.equal(report.failure.kind, "http")
-    const content = await readFile(path.join(dir, "2026-10-16.jsonl"), "utf8")
-    const parsed = content.trimEnd().split("\n").map((line) => parseMeasurementLine(line))
-    assert.deepEqual(parsed.map((measurement) => measurement.status), ["error", "error"])
+    await assert.rejects(() => readFile(path.join(dir, "2026-10-16.jsonl"), "utf8"))
   } finally {
     globalThis.fetch = originalFetch
   }

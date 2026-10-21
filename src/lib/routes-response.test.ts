@@ -1,6 +1,5 @@
 import assert from "node:assert/strict"
 import { test } from "node:test"
-import type { Measurement } from "./types"
 import { buildMatrixLayout, parseMatrixElements } from "./routes-response"
 
 const SAMPLED_AT = "2026-10-14T07:00:00.000Z"
@@ -20,17 +19,6 @@ function okElement(originIndex: number, destinationIndex: number): Record<string
     duration: "1500s",
     staticDuration: "1200s",
     distanceMeters: 12400,
-  }
-}
-
-function errorRow(pairId: string): Measurement {
-  return {
-    status: "error",
-    pairId,
-    sampledAt: SAMPLED_AT,
-    durationSeconds: null,
-    durationInTrafficSeconds: null,
-    distanceMeters: null,
   }
 }
 
@@ -65,14 +53,12 @@ test("parseMatrixElements maps documented bare-array elements to measurements", 
   })
 })
 
-test("parseMatrixElements treats absent or empty status as success and coded status as failure", () => {
+test("parseMatrixElements treats absent or empty status as success and omits coded-status elements", () => {
   const withEmptyStatus = { ...okElement(0, 0), status: {} }
   const withErrorCode = { ...okElement(0, 1), status: { code: 13, message: "no route" } }
   const withCodeZero = { ...okElement(1, 0), status: { code: 0 } }
   const measurements = parseMatrixElements([withEmptyStatus, withErrorCode, withCodeZero], SAMPLED_AT, layout)
-  assert.equal(measurements[0].status, "ok")
-  assert.deepEqual(measurements[1], errorRow("b"))
-  assert.equal(measurements[2].status, "ok")
+  assert.deepEqual(measurements.map((measurement) => measurement.pairId), ["a", "c"])
 })
 
 test("parseMatrixElements rounds duration strings like the docs allow (fractional seconds)", () => {
@@ -100,26 +86,22 @@ test("parseMatrixElements rejects non-documented duration formats instead of gue
   for (const probe of probes) {
     const element = { ...okElement(0, 0), ...probe }
     const measurements = parseMatrixElements([element], SAMPLED_AT, layout)
-    assert.deepEqual(measurements[0], errorRow("a"), `probe ${JSON.stringify(probe)} must not pass`)
+    assert.equal(measurements.length, 0, `probe ${JSON.stringify(probe)} must not pass`)
   }
 })
 
-test("parseMatrixElements yields error rows for elements missing durations or distance", () => {
+test("parseMatrixElements omits elements missing durations or distance", () => {
   const noTrafficDuration = { originIndex: 0, destinationIndex: 0, staticDuration: "1200s", distanceMeters: 12400 }
   const noDistance = { originIndex: 0, destinationIndex: 1, duration: "1500s", staticDuration: "1200s" }
   const fractionalMeters = { ...okElement(1, 0), distanceMeters: 12400.5 }
   const measurements = parseMatrixElements([noTrafficDuration, noDistance, fractionalMeters], SAMPLED_AT, layout)
-  assert.deepEqual(measurements[0], errorRow("a"))
-  assert.deepEqual(measurements[1], errorRow("b"))
-  assert.deepEqual(measurements[2], errorRow("c"))
+  assert.equal(measurements.length, 0)
 })
 
 test("parseMatrixElements ignores unpositioned elements but keeps pair order", () => {
   const response = [{ duration: "1500s" }, okElement(0, 1), okElement(0, 0)]
   const measurements = parseMatrixElements(response, SAMPLED_AT, layout)
-  assert.equal(measurements[0].status, "ok")
-  assert.equal(measurements[0].pairId, "a")
-  assert.deepEqual(measurements[2], errorRow("c"))
+  assert.deepEqual(measurements.map((measurement) => measurement.pairId), ["a", "b"])
 })
 
 test("parseMatrixElements rejects response shapes that are not a bare element array", () => {
@@ -128,8 +110,7 @@ test("parseMatrixElements rejects response shapes that are not a bare element ar
   assert.throws(() => parseMatrixElements("string", SAMPLED_AT, layout), /array/)
 })
 
-test("parseMatrixElements returns one error row per pair for an empty array", () => {
+test("parseMatrixElements returns no measurements for an empty array", () => {
   const measurements = parseMatrixElements([], SAMPLED_AT, layout)
-  assert.equal(measurements.length, 3)
-  assert.deepEqual(measurements.map((measurement) => measurement.status), ["error", "error", "error"])
+  assert.equal(measurements.length, 0)
 })

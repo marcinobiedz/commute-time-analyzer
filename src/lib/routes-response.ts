@@ -1,6 +1,5 @@
-import type { Measurement, RoutePair } from "./types"
+import type { OkMeasurement, RoutePair } from "./types"
 import { isRecord } from "./parse"
-import { failedMeasurement } from "./jsonl"
 
 export type PairPosition = {
   readonly pairId: string
@@ -37,14 +36,20 @@ function nextIndex(indexByValue: Map<string, number>, value: string): number {
   return indexByValue.size - 1
 }
 
-export function parseMatrixElements(value: unknown, sampledAt: string, layout: MatrixLayout): readonly Measurement[] {
+export function parseMatrixElements(value: unknown, sampledAt: string, layout: MatrixLayout): readonly OkMeasurement[] {
   if (!Array.isArray(value)) {
     throw new Error("Routes matrix response must be a JSON array of elements")
   }
   const elementByPosition = buildPositionIndex(value)
-  return layout.positions.map((position) =>
-    toMeasurement(position, elementByPosition.get(positionKey(position.originIndex, position.destinationIndex)), sampledAt),
-  )
+  const measurements: OkMeasurement[] = []
+  for (const position of layout.positions) {
+    const element = elementByPosition.get(positionKey(position.originIndex, position.destinationIndex))
+    const measurement = toMeasurement(position, element, sampledAt)
+    if (measurement != null) {
+      measurements.push(measurement)
+    }
+  }
+  return measurements
 }
 
 function buildPositionIndex(elements: readonly unknown[]): Map<string, Record<string, unknown>> {
@@ -74,10 +79,10 @@ function positionKey(originIndex: number, destinationIndex: number): string {
   return `${originIndex}:${destinationIndex}`
 }
 
-function toMeasurement(position: PairPosition, element: Record<string, unknown> | undefined, sampledAt: string): Measurement {
+function toMeasurement(position: PairPosition, element: Record<string, unknown> | undefined, sampledAt: string): OkMeasurement | null {
   const fields = element == null ? null : extractOkFields(element)
   if (fields == null) {
-    return failedMeasurement(position.pairId, sampledAt)
+    return null
   }
   return { status: "ok", pairId: position.pairId, sampledAt, ...fields }
 }

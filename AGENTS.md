@@ -21,7 +21,7 @@
 ## Data contract
 
 - **Collector** (long-running Node script) polls the Google **Routes API** (`computeRoutesMatrix`, traffic-aware) every 5 minutes, Monday–Friday, for each configured origin→destination pair, and appends one JSON line per pair per tick to `data/raw/<UTC-date>.jsonl` (append-only, JSONL).
-- One measurement = `{ pairId, sampledAt, status, durationSeconds, durationInTrafficSeconds, distanceMeters }` — `sampledAt` is UTC ISO 8601; durations are integer seconds; failed ticks are stored with `status: "error"` (no duration values) so gaps are analyzable, and the UI filters to `status: "ok"`.
+- One measurement = `{ pairId, sampledAt, status, durationSeconds, durationInTrafficSeconds, distanceMeters }` — `sampledAt` is UTC ISO 8601; durations are integer seconds. **Only successful measurements are written**: a failed tick or unusable element writes no row, so a missing 5-minute slot is the failure signal (human directive 2026-10-21). The reader still tolerates legacy `status: "error"` rows (the committed fixture corpus contains them); the UI filters to `status: "ok"`.
 - Configuration (API key, sampling interval, timezone) lives in `.env` (git-ignored) and is parsed/validated at startup — the collector refuses to run on invalid config. The commute routes are code-defined in `src/lib/commute-pairs.ts` (fixed pairs with per-pair local-time windows), not configuration; those pair windows are the only sampling window.
 - Local time is derived at analysis/display only (configurable IANA timezone); storage and scheduling comparisons use UTC.
 - The exact schema is owned by `src/lib/types.ts`; any change to it is a task-ledger event.

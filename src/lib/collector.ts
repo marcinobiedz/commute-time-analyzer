@@ -1,8 +1,7 @@
-import type { CollectorConfig, Measurement, RoutePair } from "./types"
+import type { CollectorConfig } from "./types"
 import { collectMatrixSample } from "./routes-matrix"
-import type { MatrixOutcome, RoutesFailure } from "./routes-matrix"
+import type { RoutesFailure } from "./routes-matrix"
 import { appendMeasurements } from "./collector-writer"
-import { failedMeasurement } from "./jsonl"
 import { activePairsAt } from "./schedule"
 
 export type TickReport = {
@@ -25,20 +24,12 @@ export async function runTick(
   }
   const tickConfig: CollectorConfig = { ...config, pairs: activePairs }
   const outcome = await collectMatrixSample(tickConfig, sampledAt, shutdown)
-  const measurements = outcome.ok ? outcome.measurements : errorRowsFor(activePairs, sampledAt)
+  const measurements = outcome.ok ? outcome.measurements : []
   await appendMeasurements(dataDir, measurements)
-  return describeTick(sampledAt, measurements, outcome)
-}
-
-export function errorRowsFor(pairs: readonly RoutePair[], sampledAt: string): readonly Measurement[] {
-  return pairs.map((pair) => failedMeasurement(pair.id, sampledAt))
-}
-
-function describeTick(
-  sampledAt: string,
-  measurements: readonly Measurement[],
-  outcome: MatrixOutcome,
-): TickReport {
-  const usable = measurements.filter((measurement) => measurement.status === "ok").length
-  return { sampledAt, pairs: measurements.length, usable, failure: outcome.ok ? null : outcome.failure }
+  return {
+    sampledAt,
+    pairs: activePairs.length,
+    usable: measurements.length,
+    failure: outcome.ok ? null : outcome.failure,
+  }
 }

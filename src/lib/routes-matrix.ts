@@ -1,4 +1,4 @@
-import type { CollectorConfig, Measurement } from "./types"
+import type { CollectorConfig, OkMeasurement } from "./types"
 import { buildMatrixLayout, parseMatrixElements, type MatrixLayout } from "./routes-response"
 
 const MATRIX_URL = "https://routes.googleapis.com/distanceMatrix/v2:computeRouteMatrix"
@@ -15,11 +15,11 @@ export type RoutesFailure =
   | { kind: "invalid-response"; detail: string }
 
 export type MatrixOutcome =
-  | { ok: true; measurements: readonly Measurement[] }
+  | { ok: true; measurements: readonly OkMeasurement[] }
   | { ok: false; failure: RoutesFailure }
 
 type AttemptResult =
-  | { kind: "measurements"; measurements: readonly Measurement[] }
+  | { kind: "measurements"; measurements: readonly OkMeasurement[] }
   | { kind: "retry"; failure: RoutesFailure }
   | { kind: "failure"; failure: RoutesFailure }
 

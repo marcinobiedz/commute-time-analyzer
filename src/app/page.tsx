@@ -1,7 +1,7 @@
-import Link from "next/link"
 import type { ReactNode } from "react"
 import DayBarsChart from "@/components/DayBarsChart"
 import RefreshButton from "@/components/RefreshButton"
+import TodayButton from "@/components/TodayButton"
 import SelectControl from "@/components/SelectControl"
 import { defaultPairId } from "@/lib/commute-pairs"
 import { parseSamplingGate } from "@/lib/config"
@@ -81,12 +81,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         <div className="mt-4 flex flex-wrap items-center gap-4">
           <SelectControl label="Route" name="pair" options={pairOptions} selected={pairId} params={urlParams} />
           <SelectControl label="Day" name="day" options={dayOptions} selected={isoDate} params={urlParams} />
-          <Link
-            href={todayUrl}
-            className="inline-flex h-10 items-center rounded border border-stone-300 px-4 text-sm font-medium hover:bg-stone-100 dark:border-stone-700 dark:hover:bg-stone-800"
-          >
-            Today
-          </Link>
+          <TodayButton href={todayUrl} />
           <RefreshButton />
         </div>
       </div>

@@ -23,6 +23,31 @@ function samplesTableRow(sample: DaySample): ReactNode {
   )
 }
 
+function chartContent(samples: readonly DaySample[]): ReactNode {
+  if (samples.length === 0) {
+    return <p className="mt-3 text-sm text-[var(--muted)]">No samples for this day.</p>
+  }
+  return <div className="mt-3"><DayBarsChart samples={samples} /></div>
+}
+
+function tableContent(recent: readonly DaySample[]): ReactNode {
+  if (recent.length === 0) {
+    return <p className="mt-3 text-sm text-[var(--muted)]">No samples for this day.</p>
+  }
+  const rows = recent.map(samplesTableRow)
+  return (
+    <table className="samples-table mt-3">
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th className="numeric">Drive time</th>
+        </tr>
+      </thead>
+      <tbody>{rows}</tbody>
+    </table>
+  )
+}
+
 export default async function HomePage({ searchParams }: HomePageProps) {
   const gate = parseSamplingGate(process.env)
   const measurements = await loadDashboardMeasurements()
@@ -37,28 +62,6 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const dayOptions = dayValues.map(controlOption)
   const samples = localDaySamples(measurements, gate.timezone, pairId, isoDate)
   const recent = recentSamples(samples, RECENT_SAMPLE_COUNT)
-  const recentRows = recent.map(samplesTableRow)
-  const hasPairChoice = pairValues.length > 1
-  const pairControl = hasPairChoice
-    ? <SelectControl label="Route" name="pair" options={pairOptions} selected={pairId} params={urlParams} />
-    : null
-  const dayControl = <SelectControl label="Day" name="day" options={dayOptions} selected={isoDate} params={urlParams} />
-  const chartContent = samples.length === 0
-    ? <p className="mt-3 text-sm text-[var(--muted)]">No samples for this day.</p>
-    : <div className="mt-3"><DayBarsChart samples={samples} /></div>
-  const tableContent = recent.length === 0
-    ? <p className="mt-3 text-sm text-[var(--muted)]">No samples for this day.</p>
-    : (
-      <table className="samples-table mt-3">
-        <thead>
-          <tr>
-            <th>Time</th>
-            <th className="numeric">Drive time</th>
-          </tr>
-        </thead>
-        <tbody>{recentRows}</tbody>
-      </table>
-    )
   return (
     <section className="space-y-8">
       <div>
@@ -67,8 +70,8 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           Traffic-aware drive time, one bar per 5-minute sample. Data refreshes when the server restarts.
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-4">
-          {pairControl}
-          {dayControl}
+          <SelectControl label="Route" name="pair" options={pairOptions} selected={pairId} params={urlParams} />
+          <SelectControl label="Day" name="day" options={dayOptions} selected={isoDate} params={urlParams} />
         </div>
       </div>
       <section>
@@ -76,11 +79,11 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         <p className="mt-1 text-sm text-[var(--muted)]">
           The climb shows the hour the drive starts to slow.
         </p>
-        {chartContent}
+        {chartContent(samples)}
       </section>
       <section>
         <h2 className="text-lg font-semibold">Last {RECENT_SAMPLE_COUNT} samples — {isoDate}</h2>
-        {tableContent}
+        {tableContent(recent)}
       </section>
     </section>
   )

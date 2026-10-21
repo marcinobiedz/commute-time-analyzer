@@ -69,7 +69,7 @@ Decisions taken from the human's answers to the intake questions:
 | T-019 | Master skill: mandatory `REVIEW.md` watcher | 3a349b7 | APPROVED |
 | T-020 | Commute routes in code, `ROUTE_PAIRS` dropped; global window knobs removed by R-020-1 | 36a7e71 → 90043ab + b764a05 | APPROVED |
 | T-021 | Ledger cleanup (human directive 2026-10-21): historical material moved verbatim to `TASKS-ARCHIVE.md`; this file keeps the current plan, full ledger and current-session log; also removes the two residual window claims R-020-1 flagged | b764a05 | APPROVED |
-| T-022 | Collector stores successful measurements only — no failure rows (human directive 2026-10-21); round-1 label fix R-022-1 | 20c01eb + R-022-1 fix | COMMITTED |
+| T-022 | Collector stores successful measurements only — no failure rows (human directive 2026-10-21); round-1 label fix R-022-1 | 20c01eb + 9c5b93f | APPROVED |
 
 Sequencing note: T-013 is the only open task and is blocked on human inputs (gRPC deps + proto files); T-008, T-009 and T-021 are APPROVED. One task = one commit; if a task grows past its scope mid-flight, log the discovery and split it in the ledger before committing.
 

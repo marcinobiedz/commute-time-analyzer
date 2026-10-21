@@ -27,7 +27,7 @@ export default function DayBarsChart({ samples }: DayBarsChartProps) {
   return (
     <div className="dashboard-chart h-80 w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={chartSamples} barCategoryGap={0}>
+        <BarChart data={chartSamples} barCategoryGap={compact ? 0 : "10%"}>
           <CartesianGrid horizontal vertical={false} />
           <XAxis dataKey="timeLabel" interval="preserveStartEnd" minTickGap={24} />
           <YAxis hide={compact} tickFormatter={formatDurationLabel} width={90} />

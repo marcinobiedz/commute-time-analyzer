@@ -14,8 +14,6 @@ function configWith(overrides: Partial<CollectorConfig>): CollectorConfig {
     apiKey: "k",
     pairs: [pair("p", 0, 1439)],
     sampleIntervalMinutes: 5,
-    windowStartMinutes: 0,
-    windowEndMinutes: 1439,
     timezone: WARSAW,
     ...overrides,
   }

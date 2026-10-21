@@ -47,12 +47,15 @@ export function zonedParts(date: Date, timezone: string): ZonedParts {
 
 export type SamplingGate = {
   readonly sampleIntervalMinutes: number
-  readonly windowStartMinutes: number
-  readonly windowEndMinutes: number
   readonly timezone: string
 }
 
-export function withinGate(parts: ZonedParts, gate: SamplingGate): boolean {
+export type WindowGate = SamplingGate & {
+  readonly windowStartMinutes: number
+  readonly windowEndMinutes: number
+}
+
+export function withinGate(parts: ZonedParts, gate: WindowGate): boolean {
   return onSamplingGrid(parts, gate) && minutesInWindow(parts.minutesOfDay, gate.windowStartMinutes, gate.windowEndMinutes)
 }
 

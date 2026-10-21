@@ -21,13 +21,13 @@ traffic-aware `durationInTraffic` per element.
 1. A Google Cloud project with **Routes API** enabled and an API key.
 2. `.env` (git-ignored) with at least:
    - `GOOGLE_MAPS_API_KEY`
-   - optional: `SAMPLE_INTERVAL_MINUTES` (default 5), `WINDOW_START` / `WINDOW_END` (local time, default 05:00–21:00), `TIMEZONE` (IANA, default `Europe/Warsaw`)
+   - optional: `SAMPLE_INTERVAL_MINUTES` (default 5), `TIMEZONE` (IANA, default `Europe/Warsaw`)
 3. The commute routes are code-defined in `src/lib/commute-pairs.ts` (two fixed pairs, each with its own local-time window) — nothing to configure.
 4. Keep the collector process running on weekdays (e.g. via Windows Task Scheduler).
 
-**Cost note:** at 5-minute intervals around the clock, one pair costs ~288 billable elements/day
-(~6,300/month over weekdays). Narrow `WINDOW_START`/`WINDOW_END` to commute hours to cut this
-sharply. The dashboard works with whatever window is configured.
+**Cost note:** each pair samples only inside its own code-defined window — 05:00–11:00 and
+15:00–22:00 local, Monday–Friday — so a weekday costs 158 billable elements (73 + 85 ticks),
+about 3,300/month. Edit the windows in `src/lib/commute-pairs.ts` to trade coverage for cost.
 
 ## Status
 

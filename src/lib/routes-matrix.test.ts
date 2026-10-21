@@ -15,8 +15,6 @@ const CONFIG: CollectorConfig = {
     { id: "shop", label: "To shop", origin: "O2", destination: "D2", windowStartMinutes: 0, windowEndMinutes: 1439 },
   ],
   sampleIntervalMinutes: 5,
-  windowStartMinutes: 0,
-  windowEndMinutes: 1439,
   timezone: "Europe/Warsaw",
 }
 

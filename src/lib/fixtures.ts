@@ -1,6 +1,6 @@
 import { failedMeasurement } from "./jsonl"
 import { withinGate, zonedParts } from "./schedule"
-import type { SamplingGate, ZonedParts } from "./schedule"
+import type { WindowGate, ZonedParts } from "./schedule"
 import type { Measurement } from "./types"
 
 const MINUTES_PER_DAY = 1440
@@ -17,7 +17,7 @@ export type FixtureSpec = {
   readonly firstDayUtc: string
   readonly dayCount: number
   readonly errorRate: number
-  readonly gate: SamplingGate
+  readonly gate: WindowGate
 }
 
 type FixtureTick = {
@@ -27,7 +27,7 @@ type FixtureTick = {
   readonly minuteOfDayUtc: number
 }
 
-export const FIXTURE_GATE: SamplingGate = {
+export const FIXTURE_GATE: WindowGate = {
   sampleIntervalMinutes: 5,
   windowStartMinutes: 5 * 60,
   windowEndMinutes: 21 * 60,

@@ -31,7 +31,5 @@ export type CollectorConfig = {
   readonly apiKey: string
   readonly pairs: readonly RoutePair[]
   readonly sampleIntervalMinutes: number
-  readonly windowStartMinutes: number
-  readonly windowEndMinutes: number
   readonly timezone: string
 }

@@ -7,7 +7,7 @@ export const COMMUTE_PAIRS = [
     origin: "Chemików 7, 95-100 Zgierz",
     destination: "Studio B sp. z o.o., Łucka 9, 00-842 Warszawa",
     windowStartMinutes: 4 * 60,
-    windowEndMinutes: 12 * 60,
+    windowEndMinutes: 12 * 60 - 1,
   },
   {
     id: "waw-zgo",

@@ -65,7 +65,7 @@ test("parseConfig uses the coded commute pairs with their windows", () => {
       origin: "Chemików 7, 95-100 Zgierz",
       destination: "Studio B sp. z o.o., Łucka 9, 00-842 Warszawa",
       windowStartMinutes: 240,
-      windowEndMinutes: 720,
+      windowEndMinutes: 719,
     },
     {
       id: "waw-zgo",

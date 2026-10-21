@@ -2,6 +2,7 @@ import assert from "node:assert/strict"
 import { test } from "node:test"
 import type { CollectorConfig, RoutePair } from "./types"
 import { activePairsAt, shouldSampleAt, zonedParts } from "./schedule"
+import { COMMUTE_PAIRS } from "./commute-pairs"
 
 const WARSAW = "Europe/Warsaw"
 
@@ -57,6 +58,14 @@ test("shouldSampleAt uses the configured timezone for the same instant", () => {
   const instant = new Date("2026-10-16T22:00:00Z")
   assert.equal(shouldSampleAt(instant, configWith({ timezone: "UTC" })), true)
   assert.equal(shouldSampleAt(instant, configWith({ timezone: WARSAW })), false)
+})
+
+test("the coded windows leave noon to the return route alone", () => {
+  const config = configWith({ pairs: COMMUTE_PAIRS })
+  const lastOutboundTick = new Date("2026-10-16T09:55:00Z")
+  const noon = new Date("2026-10-16T10:00:00Z")
+  assert.deepEqual(activePairsAt(config, lastOutboundTick).map((route) => route.id), ["zgo-waw"])
+  assert.deepEqual(activePairsAt(config, noon).map((route) => route.id), ["waw-zgo"])
 })
 
 test("shouldSampleAt uses the union of pair windows and activePairsAt selects the open pair", () => {

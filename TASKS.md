@@ -73,8 +73,8 @@ Decisions taken from the human's answers to the intake questions:
 | T-023 | Drive-time labels with spaced unit letters (`1 h 27 m 57 s`) in the chart axis, tooltip and last-20 table, plus Google-Maps-style green→red bar coloring by delay vs static (human directive 2026-10-21) | 65ded39 + 82cd3bc | APPROVED |
 | T-024 | PWA: web manifest, generated icons, minimal service worker so the dashboard can be pinned to a phone home screen (human directive 2026-10-21) | 3f8d025 + 242f4e2 | APPROVED |
 | T-025 | Color the last-20 table values with the same green→red delay scale (human directive 2026-10-21) | 3cb6297 + 242f4e2 | APPROVED |
-| T-026 | Phone layout: chart edge-to-edge with no Y axis, thicker bars, stronger axis labels (human directive 2026-10-21) | dacb07f + R-026-1/R-026-2 fix | COMMITTED |
-| T-027 | Fill the last-20 Drive time cell with the delay color and use a clearer, bolder font (human directive 2026-10-21) | — | TODO |
+| T-026 | Phone layout: chart edge-to-edge with no Y axis, thicker bars, stronger axis labels (human directive 2026-10-21) | dacb07f → 7199128 | APPROVED |
+| T-027 | Fill the last-20 Drive time cell with the delay color and use a clearer, bolder font (human directive 2026-10-21) | — | COMMITTED |
 | T-028 | Road-themed app icon instead of the bar-chart icon (human directive 2026-10-21) | — | TODO |
 
 Sequencing note: the rows above are the only status record — read them, not prose. One task = one commit; if a task grows past its scope mid-flight, log the discovery and split it in the ledger before committing.
@@ -175,3 +175,8 @@ All green work committed; the working tree is clean apart from the ephemeral rev
 - **Human actions owed:** none. To operate: `npm run collect` (long-running, weekdays) and `npm run dev` (dashboard); the key is already in `.env`.
 - **Data note:** `data/raw` holds only what the collector writes; until it runs, the dashboard shows the empty state. Failed ticks write nothing by design (T-022), so gaps are the failure signal.
 - **Resume trigger:** a human directive, or a new task recorded in this ledger. The watcher contract (T-019) is unchanged.
+
+## Master log — 2026-10-21 (session 8)
+
+- **2026-10-21 — session 8 wake: T-026 closed, T-027 built.** Startup read: HEAD `7199128` is the R-026-1/R-026-2 fix; `REVIEW.md`'s status rollup (`:344`) records **T-026 APPROVED** with both findings resolved, zero open findings and nothing unreviewed. The ledger flip now trails that verdict: **T-026 → APPROVED** (`dacb07f → 7199128`). The reviewer's dated re-review section for `7199128` is absent from the thread even though the rollup carries the verdict; the rollup is the reviewer's own status record, so it is the basis for the flip — recorded so the reviewer can confirm or correct the provenance.
+- **2026-10-21 — T-027 built: filled delay-colored Drive time cell.** Human directive (recorded in the T-027 intake entry): *"daj może cały pasek na ten kolor"* + *"i wyraźniejszy font"*. `delayTextColor` is replaced by `delayCellStyle`, which returns the exact bar fill (via the new `delayFill`, shared with `delayColor`) plus an on-fill ink (`#1c1917` above hue 40, `#ffffff` at or below it, so the saturated red end keeps white text); the old theme-aware text helper had no caller left, so it and its test are deleted rather than left dead. `page.tsx` applies the style to the whole Drive time cell and adds the `.delay-cell` class; `globals.css` sets that value to 15 px / weight 600. Verification: `npm run typecheck` ✓, `npm run lint` both dirs ✓, `npm test` **77/77** ✓ (the `delayTextColor` test replaced by the `delayCellStyle` test, count unchanged), `npm run build` ✓ (`ƒ /` dynamic, first load 272 kB).

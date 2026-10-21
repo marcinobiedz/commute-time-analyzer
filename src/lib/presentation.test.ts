@@ -8,7 +8,7 @@ import {
   formatClockLabel,
   formatDurationLabel,
   delayColor,
-  delayTextColor,
+  delayCellStyle,
   pickParam,
 } from "./presentation"
 import { zonedParts } from "./schedule"
@@ -44,10 +44,13 @@ test("delayColor runs green to red as traffic time exceeds the static time", () 
   assert.equal(delayColor(1000, 0), "hsl(120, 70%, 45%)")
 })
 
-test("delayTextColor uses the same hue with theme-aware lightness", () => {
-  assert.equal(delayTextColor(1000, 1000), "light-dark(hsl(120, 70%, 28%), hsl(120, 80%, 62%))")
-  assert.equal(delayTextColor(1300, 1000), "light-dark(hsl(60, 70%, 28%), hsl(60, 80%, 62%))")
-  assert.equal(delayTextColor(1600, 1000), "light-dark(hsl(0, 70%, 28%), hsl(0, 80%, 62%))")
+test("delayCellStyle fills the cell with the delay color and picks readable ink", () => {
+  assert.deepEqual(delayCellStyle(1000, 1000), { backgroundColor: "hsl(120, 70%, 45%)", color: "#1c1917" })
+  assert.deepEqual(delayCellStyle(1300, 1000), { backgroundColor: "hsl(60, 70%, 45%)", color: "#1c1917" })
+  assert.deepEqual(delayCellStyle(1400, 1000), { backgroundColor: "hsl(40, 70%, 45%)", color: "#ffffff" })
+  assert.deepEqual(delayCellStyle(1600, 1000), { backgroundColor: "hsl(0, 70%, 45%)", color: "#ffffff" })
+  assert.deepEqual(delayCellStyle(3000, 1000), { backgroundColor: "hsl(0, 70%, 45%)", color: "#ffffff" })
+  assert.deepEqual(delayCellStyle(1000, 0), { backgroundColor: "hsl(120, 70%, 45%)", color: "#1c1917" })
 })
 
 test("distinctPairIds dedupes and sorts", () => {

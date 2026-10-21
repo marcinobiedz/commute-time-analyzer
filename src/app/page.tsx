@@ -5,7 +5,7 @@ import { parseSamplingGate } from "@/lib/config"
 import { loadDashboardMeasurements } from "@/lib/data"
 import type { DaySample } from "@/lib/day-samples"
 import { defaultDayValue, localDaySamples, recentSamples } from "@/lib/day-samples"
-import { controlOption, delayTextColor, distinctLocalDates, distinctPairIds, formatDurationLabel, pickParam } from "@/lib/presentation"
+import { controlOption, delayCellStyle, distinctLocalDates, distinctPairIds, formatDurationLabel, pickParam } from "@/lib/presentation"
 import { zonedParts } from "@/lib/schedule"
 
 type HomePageProps = {
@@ -15,11 +15,11 @@ type HomePageProps = {
 const RECENT_SAMPLE_COUNT = 20
 
 function samplesTableRow(sample: DaySample): ReactNode {
-  const color = delayTextColor(sample.durationInTrafficSeconds, sample.staticDurationSeconds)
+  const cellStyle = delayCellStyle(sample.durationInTrafficSeconds, sample.staticDurationSeconds)
   return (
     <tr key={sample.key}>
       <td>{sample.timeLabel}</td>
-      <td className="numeric" style={{ color }}>{formatDurationLabel(sample.durationInTrafficSeconds)}</td>
+      <td className="numeric delay-cell" style={cellStyle}>{formatDurationLabel(sample.durationInTrafficSeconds)}</td>
     </tr>
   )
 }

@@ -7,19 +7,38 @@ const MINUTES_PER_DAY = 1440
 
 const MAX_DELAY_RATIO = 0.6
 
+const LIGHT_ON_FILL = "#ffffff"
+
+const DARK_ON_FILL = "#1c1917"
+
+const LIGHT_ON_FILL_MAX_HUE = 40
+
 function delayHue(trafficSeconds: number, staticSeconds: number): number {
   const delayRatio = staticSeconds <= 0 ? 0 : (trafficSeconds - staticSeconds) / staticSeconds
   const clampedRatio = Math.min(Math.max(delayRatio, 0), MAX_DELAY_RATIO)
   return Math.round(120 * (1 - clampedRatio / MAX_DELAY_RATIO))
 }
 
-export function delayColor(trafficSeconds: number, staticSeconds: number): string {
-  return `hsl(${delayHue(trafficSeconds, staticSeconds)}, 70%, 45%)`
+function delayFill(hue: number): string {
+  return `hsl(${hue}, 70%, 45%)`
 }
 
-export function delayTextColor(trafficSeconds: number, staticSeconds: number): string {
+function delayInk(hue: number): string {
+  return hue <= LIGHT_ON_FILL_MAX_HUE ? LIGHT_ON_FILL : DARK_ON_FILL
+}
+
+export type DelayCellStyle = {
+  readonly backgroundColor: string
+  readonly color: string
+}
+
+export function delayColor(trafficSeconds: number, staticSeconds: number): string {
+  return delayFill(delayHue(trafficSeconds, staticSeconds))
+}
+
+export function delayCellStyle(trafficSeconds: number, staticSeconds: number): DelayCellStyle {
   const hue = delayHue(trafficSeconds, staticSeconds)
-  return `light-dark(hsl(${hue}, 70%, 28%), hsl(${hue}, 80%, 62%))`
+  return { backgroundColor: delayFill(hue), color: delayInk(hue) }
 }
 
 const AXIS_INK = "#8a8178"

@@ -68,3 +68,8 @@ body {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
+
+.samples-table .delay-cell {
+  font-size: 15px;
+  font-weight: 600;
+}

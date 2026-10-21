@@ -23,16 +23,20 @@ function samplesTableRow(sample: DaySample): ReactNode {
   )
 }
 
+function emptyDayNote(): ReactNode {
+  return <p className="mt-3 text-sm text-[var(--muted)]">No samples for this day.</p>
+}
+
 function chartContent(samples: readonly DaySample[]): ReactNode {
   if (samples.length === 0) {
-    return <p className="mt-3 text-sm text-[var(--muted)]">No samples for this day.</p>
+    return emptyDayNote()
   }
   return <div className="mt-3"><DayBarsChart samples={samples} /></div>
 }
 
 function tableContent(recent: readonly DaySample[]): ReactNode {
   if (recent.length === 0) {
-    return <p className="mt-3 text-sm text-[var(--muted)]">No samples for this day.</p>
+    return emptyDayNote()
   }
   const rows = recent.map(samplesTableRow)
   return (

@@ -6,9 +6,9 @@ import { buildMatrixLayout, parseMatrixElements } from "./routes-response"
 const SAMPLED_AT = "2026-10-14T07:00:00.000Z"
 
 const pairs = [
-  { id: "a", label: "A", origin: "O1", destination: "D1" },
-  { id: "b", label: "B", origin: "O1", destination: "D2" },
-  { id: "c", label: "C", origin: "O2", destination: "D1" },
+  { id: "a", label: "A", origin: "O1", destination: "D1", windowStartMinutes: 0, windowEndMinutes: 1439 },
+  { id: "b", label: "B", origin: "O1", destination: "D2", windowStartMinutes: 0, windowEndMinutes: 1439 },
+  { id: "c", label: "C", origin: "O2", destination: "D1", windowStartMinutes: 0, windowEndMinutes: 1439 },
 ]
 
 const layout = buildMatrixLayout(pairs)

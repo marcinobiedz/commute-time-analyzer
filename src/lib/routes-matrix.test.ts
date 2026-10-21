@@ -11,8 +11,8 @@ const NEVER_ABORTS = AbortSignal.timeout(60000)
 const CONFIG: CollectorConfig = {
   apiKey: "test-key",
   pairs: [
-    { id: "work", label: "To work", origin: "O1", destination: "D1" },
-    { id: "shop", label: "To shop", origin: "O2", destination: "D2" },
+    { id: "work", label: "To work", origin: "O1", destination: "D1", windowStartMinutes: 0, windowEndMinutes: 1439 },
+    { id: "shop", label: "To shop", origin: "O2", destination: "D2", windowStartMinutes: 0, windowEndMinutes: 1439 },
   ],
   sampleIntervalMinutes: 5,
   windowStartMinutes: 0,
@@ -136,8 +136,8 @@ test("client-level dedup: shared origin collapses to one matrix origin", async (
   const sharedPairsConfig: CollectorConfig = {
     ...CONFIG,
     pairs: [
-      { id: "x", label: "X", origin: "SAME", destination: "D1" },
-      { id: "y", label: "Y", origin: "SAME", destination: "D2" },
+      { id: "x", label: "X", origin: "SAME", destination: "D1", windowStartMinutes: 0, windowEndMinutes: 1439 },
+      { id: "y", label: "Y", origin: "SAME", destination: "D2", windowStartMinutes: 0, windowEndMinutes: 1439 },
     ],
   }
   const originalFetch = globalThis.fetch

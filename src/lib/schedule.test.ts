@@ -1,14 +1,18 @@
 import assert from "node:assert/strict"
 import { test } from "node:test"
-import type { CollectorConfig } from "./types"
-import { shouldSampleAt, zonedParts } from "./schedule"
+import type { CollectorConfig, RoutePair } from "./types"
+import { activePairsAt, shouldSampleAt, zonedParts } from "./schedule"
 
 const WARSAW = "Europe/Warsaw"
 
-function configWith(overrides: Record<string, unknown>): CollectorConfig {
+function pair(id: string, windowStartMinutes: number, windowEndMinutes: number): RoutePair {
+  return { id, label: id, origin: "O", destination: "D", windowStartMinutes, windowEndMinutes }
+}
+
+function configWith(overrides: Partial<CollectorConfig>): CollectorConfig {
   return {
     apiKey: "k",
-    pairs: [{ id: "p", label: "P", origin: "O", destination: "D" }],
+    pairs: [pair("p", 0, 1439)],
     sampleIntervalMinutes: 5,
     windowStartMinutes: 0,
     windowEndMinutes: 1439,
@@ -31,13 +35,13 @@ test("shouldSampleAt blocks weekends by local weekday not UTC", () => {
   assert.equal(shouldSampleAt(fridayLateLocal, configWith({})), true)
 })
 
-test("shouldSampleAt enforces the local window inclusive of both ends", () => {
+test("shouldSampleAt enforces a pair window inclusive of both ends", () => {
   const localMidnightStartFriday = new Date("2026-10-15T22:00:00Z")
-  assert.equal(shouldSampleAt(localMidnightStartFriday, configWith({ windowStartMinutes: 0 })), true)
-  assert.equal(shouldSampleAt(localMidnightStartFriday, configWith({ windowStartMinutes: 1 })), false)
+  assert.equal(shouldSampleAt(localMidnightStartFriday, configWith({ pairs: [pair("p", 0, 1439)] })), true)
+  assert.equal(shouldSampleAt(localMidnightStartFriday, configWith({ pairs: [pair("p", 1, 1439)] })), false)
   const local2355Friday = new Date("2026-10-16T21:55:00Z")
-  assert.equal(shouldSampleAt(local2355Friday, configWith({ windowEndMinutes: 1435 })), true)
-  assert.equal(shouldSampleAt(local2355Friday, configWith({ windowEndMinutes: 1434 })), false)
+  assert.equal(shouldSampleAt(local2355Friday, configWith({ pairs: [pair("p", 0, 1435)] })), true)
+  assert.equal(shouldSampleAt(local2355Friday, configWith({ pairs: [pair("p", 0, 1434)] })), false)
 })
 
 test("shouldSampleAt aligns to the interval grid in local minutes", () => {
@@ -55,4 +59,19 @@ test("shouldSampleAt uses the configured timezone for the same instant", () => {
   const instant = new Date("2026-10-16T22:00:00Z")
   assert.equal(shouldSampleAt(instant, configWith({ timezone: "UTC" })), true)
   assert.equal(shouldSampleAt(instant, configWith({ timezone: WARSAW })), false)
+})
+
+test("shouldSampleAt uses the union of pair windows and activePairsAt selects the open pair", () => {
+  const config = configWith({
+    pairs: [pair("outbound", 300, 660), pair("return", 900, 1320)],
+  })
+  const morning = new Date("2026-10-16T05:00:00Z")
+  const midday = new Date("2026-10-16T10:00:00Z")
+  const afternoon = new Date("2026-10-16T14:00:00Z")
+  assert.equal(shouldSampleAt(morning, config), true)
+  assert.equal(shouldSampleAt(midday, config), false)
+  assert.equal(shouldSampleAt(afternoon, config), true)
+  assert.deepEqual(activePairsAt(config, morning).map((route) => route.id), ["outbound"])
+  assert.deepEqual(activePairsAt(config, midday).map((route) => route.id), [])
+  assert.deepEqual(activePairsAt(config, afternoon).map((route) => route.id), ["return"])
 })

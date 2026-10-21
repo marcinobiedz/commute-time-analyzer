@@ -13,8 +13,8 @@ const SAMPLED_AT = "2026-10-16T09:05:00.000Z"
 const config: CollectorConfig = {
   apiKey: "k",
   pairs: [
-    { id: "work", label: "To work", origin: "O1", destination: "D1" },
-    { id: "shop", label: "To shop", origin: "O2", destination: "D2" },
+    { id: "work", label: "To work", origin: "O1", destination: "D1", windowStartMinutes: 0, windowEndMinutes: 1439 },
+    { id: "shop", label: "To shop", origin: "O2", destination: "D2", windowStartMinutes: 0, windowEndMinutes: 1439 },
   ],
   sampleIntervalMinutes: 5,
   windowStartMinutes: 0,
@@ -78,6 +78,43 @@ test("runTick appends parsed measurements on a successful matrix call", async ()
   } finally {
     globalThis.fetch = originalFetch
   }
+})
+
+test("runTick collects only the pairs whose window contains the tick", async () => {
+  const dir = await tempDataDir()
+  const windowedConfig: CollectorConfig = {
+    ...config,
+    pairs: [
+      { ...config.pairs[0], windowStartMinutes: 300, windowEndMinutes: 720 },
+      { ...config.pairs[1], windowStartMinutes: 900, windowEndMinutes: 1320 },
+    ],
+  }
+  const body = JSON.stringify([{ originIndex: 0, destinationIndex: 0, duration: "1000s", staticDuration: "900s", distanceMeters: 8000 }])
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = async (): Promise<Response> => new Response(body, { status: 200 })
+  try {
+    const report = await runTick(windowedConfig, dir, new Date(SAMPLED_AT), AbortSignal.timeout(30000))
+    assert.deepEqual(report, { sampledAt: SAMPLED_AT, pairs: 1, usable: 1, failure: null })
+    const content = await readFile(path.join(dir, "2026-10-16.jsonl"), "utf8")
+    const parsed = content.trimEnd().split("\n").map((line) => parseMeasurementLine(line))
+    assert.deepEqual(parsed.map((measurement) => measurement.pairId), ["work"])
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+})
+
+test("runTick writes nothing when no pair window contains the tick", async () => {
+  const dir = await tempDataDir()
+  const closedConfig: CollectorConfig = {
+    ...config,
+    pairs: [
+      { ...config.pairs[0], windowStartMinutes: 900, windowEndMinutes: 1320 },
+      { ...config.pairs[1], windowStartMinutes: 900, windowEndMinutes: 1320 },
+    ],
+  }
+  const report = await runTick(closedConfig, dir, new Date(SAMPLED_AT), AbortSignal.timeout(30000))
+  assert.deepEqual(report, { sampledAt: SAMPLED_AT, pairs: 0, usable: 0, failure: null })
+  await assert.rejects(() => readFile(path.join(dir, "2026-10-16.jsonl"), "utf8"))
 })
 
 test("runTick records an error row per pair when the whole call fails", async () => {

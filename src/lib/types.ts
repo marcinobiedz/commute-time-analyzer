@@ -23,6 +23,8 @@ export type RoutePair = {
   readonly label: string
   readonly origin: string
   readonly destination: string
+  readonly windowStartMinutes: number
+  readonly windowEndMinutes: number
 }
 
 export type CollectorConfig = {

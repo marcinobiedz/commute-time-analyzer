@@ -24,7 +24,7 @@ export function parseConfig(env: Record<string, string | undefined>): CollectorC
   }
   return {
     apiKey: readApiKey(env.GOOGLE_MAPS_API_KEY),
-    pairs: readPairs(env.ROUTE_PAIRS),
+    pairs: readPairs(env.ROUTE_PAIRS, gate),
     ...gate,
   }
 }
@@ -37,12 +37,12 @@ function readApiKey(raw: string | undefined): string {
   return value
 }
 
-function readPairs(raw: string | undefined): readonly RoutePair[] {
+function readPairs(raw: string | undefined, defaults: SamplingGate): readonly RoutePair[] {
   const value = trimmedIfPresent(raw)
   if (value == null) {
-    throw new Error("ROUTE_PAIRS is required: a JSON array of {id, label, origin, destination}")
+    throw new Error("ROUTE_PAIRS is required: a JSON array of {id, label, origin, destination} with optional windowStart/windowEnd")
   }
-  const pairs = parseJsonArray(value, "ROUTE_PAIRS").map(readPair)
+  const pairs = parseJsonArray(value, "ROUTE_PAIRS").map((element) => readPair(element, defaults))
   if (pairs.length === 0) {
     throw new Error("ROUTE_PAIRS must contain at least one pair")
   }
@@ -58,16 +58,35 @@ function parseJsonArray(raw: string, field: string): unknown[] {
   return value
 }
 
-function readPair(element: unknown): RoutePair {
+function readPair(element: unknown, defaults: SamplingGate): RoutePair {
   if (!isRecord(element)) {
     throw new Error("Each ROUTE_PAIRS element must be an object with id, label, origin, destination")
   }
+  const id = readRequiredString(element, "id", "ROUTE_PAIRS element")
+  const windowStartMinutes = readWindowMinutes(readPairString(element, "windowStart"), defaults.windowStartMinutes, "windowStart")
+  const windowEndMinutes = readWindowMinutes(readPairString(element, "windowEnd"), defaults.windowEndMinutes, "windowEnd")
+  if (windowStartMinutes > windowEndMinutes) {
+    throw new Error(`ROUTE_PAIRS "${id}" windowStart must not be after windowEnd`)
+  }
   return {
-    id: readRequiredString(element, "id", "ROUTE_PAIRS element"),
+    id,
     label: readRequiredString(element, "label", "ROUTE_PAIRS element"),
     origin: readRequiredString(element, "origin", "ROUTE_PAIRS element"),
     destination: readRequiredString(element, "destination", "ROUTE_PAIRS element"),
+    windowStartMinutes,
+    windowEndMinutes,
   }
+}
+
+function readPairString(element: Record<string, unknown>, field: string): string | undefined {
+  const raw = element[field]
+  if (raw == null) {
+    return undefined
+  }
+  if (typeof raw !== "string") {
+    throw new Error(`ROUTE_PAIRS element ${field} must be a local clock time HH:MM`)
+  }
+  return raw
 }
 
 function requireUniquePairIds(pairs: readonly RoutePair[]): void {

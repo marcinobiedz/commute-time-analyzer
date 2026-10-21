@@ -1,4 +1,4 @@
-import type { CollectorConfig } from "./types"
+import type { CollectorConfig, RoutePair } from "./types"
 
 const WEEKDAY_ISO = new Map<string, number>([
   ["Mon", 1], ["Tue", 2], ["Wed", 3], ["Thu", 4], ["Fri", 5], ["Sat", 6], ["Sun", 7],
@@ -53,17 +53,29 @@ export type SamplingGate = {
 }
 
 export function withinGate(parts: ZonedParts, gate: SamplingGate): boolean {
-  if (parts.weekdayIso > 5) {
-    return false
-  }
-  if (parts.minutesOfDay < gate.windowStartMinutes || parts.minutesOfDay > gate.windowEndMinutes) {
-    return false
-  }
-  return parts.minutesOfDay % gate.sampleIntervalMinutes === 0
+  return onSamplingGrid(parts, gate) && minutesInWindow(parts.minutesOfDay, gate.windowStartMinutes, gate.windowEndMinutes)
 }
 
 export function shouldSampleAt(date: Date, config: CollectorConfig): boolean {
-  return withinGate(zonedParts(date, config.timezone), config)
+  const parts = zonedParts(date, config.timezone)
+  return onSamplingGrid(parts, config) && config.pairs.some((pair) => pairActiveAt(pair, parts.minutesOfDay))
+}
+
+export function activePairsAt(config: CollectorConfig, date: Date): readonly RoutePair[] {
+  const parts = zonedParts(date, config.timezone)
+  return config.pairs.filter((pair) => pairActiveAt(pair, parts.minutesOfDay))
+}
+
+function onSamplingGrid(parts: ZonedParts, gate: SamplingGate): boolean {
+  return parts.weekdayIso <= 5 && parts.minutesOfDay % gate.sampleIntervalMinutes === 0
+}
+
+function pairActiveAt(pair: RoutePair, minutesOfDay: number): boolean {
+  return minutesInWindow(minutesOfDay, pair.windowStartMinutes, pair.windowEndMinutes)
+}
+
+function minutesInWindow(minutesOfDay: number, windowStartMinutes: number, windowEndMinutes: number): boolean {
+  return minutesOfDay >= windowStartMinutes && minutesOfDay <= windowEndMinutes
 }
 
 function readPart(parts: Intl.DateTimeFormatPart[], type: Intl.DateTimeFormatPartTypes): string {

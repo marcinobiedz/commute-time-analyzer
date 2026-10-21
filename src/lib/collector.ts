@@ -3,6 +3,7 @@ import { collectMatrixSample } from "./routes-matrix"
 import type { MatrixOutcome, RoutesFailure } from "./routes-matrix"
 import { appendMeasurements } from "./collector-writer"
 import { failedMeasurement } from "./jsonl"
+import { activePairsAt } from "./schedule"
 
 export type TickReport = {
   readonly sampledAt: string
@@ -18,8 +19,13 @@ export async function runTick(
   shutdown: AbortSignal,
 ): Promise<TickReport> {
   const sampledAt = now.toISOString()
-  const outcome = await collectMatrixSample(config, sampledAt, shutdown)
-  const measurements = outcome.ok ? outcome.measurements : errorRowsFor(config.pairs, sampledAt)
+  const activePairs = activePairsAt(config, now)
+  if (activePairs.length === 0) {
+    return { sampledAt, pairs: 0, usable: 0, failure: null }
+  }
+  const tickConfig: CollectorConfig = { ...config, pairs: activePairs }
+  const outcome = await collectMatrixSample(tickConfig, sampledAt, shutdown)
+  const measurements = outcome.ok ? outcome.measurements : errorRowsFor(activePairs, sampledAt)
   await appendMeasurements(dataDir, measurements)
   return describeTick(sampledAt, measurements, outcome)
 }

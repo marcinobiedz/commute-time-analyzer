@@ -4,7 +4,7 @@ import { runTick } from "../src/lib/collector"
 import { defaultDataDir, ensureDataDir } from "../src/lib/collector-writer"
 import { shouldSampleAt } from "../src/lib/schedule"
 import { logEvent } from "../src/lib/log-event"
-import type { CollectorConfig } from "../src/lib/types"
+import type { CollectorConfig, RoutePair } from "../src/lib/types"
 
 type TickState = { busy: boolean; inFlight: Promise<void> }
 
@@ -15,7 +15,7 @@ async function main(): Promise<void> {
   logEvent("info", "collector-start", {
     pairs: config.pairs.length,
     intervalMinutes: config.sampleIntervalMinutes,
-    windowMinutes: [config.windowStartMinutes, config.windowEndMinutes],
+    windows: config.pairs.map(describePairWindow),
     timezone: config.timezone,
     dataDir,
   })
@@ -46,6 +46,10 @@ function stopAll(state: TickState, task: { stop(): void }, shutdown: AbortContro
   task.stop()
   shutdown.abort()
   state.inFlight.then(() => process.exit(0))
+}
+
+function describePairWindow(pair: RoutePair): { id: string; startMinutes: number; endMinutes: number } {
+  return { id: pair.id, startMinutes: pair.windowStartMinutes, endMinutes: pair.windowEndMinutes }
 }
 
 function errorMessage(error: unknown): string {

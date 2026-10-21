@@ -18,3 +18,17 @@ export const COMMUTE_PAIRS = [
     windowEndMinutes: 22 * 60,
   },
 ] as const satisfies readonly RoutePair[]
+
+const RETURN_START_MINUTES = 14 * 60
+
+const OUTBOUND_PAIR_ID = COMMUTE_PAIRS[0].id
+
+const RETURN_PAIR_ID = COMMUTE_PAIRS[1].id
+
+export function defaultPairId(localMinutes: number, availablePairIds: readonly string[]): string {
+  const preferredPairId = localMinutes >= RETURN_START_MINUTES ? RETURN_PAIR_ID : OUTBOUND_PAIR_ID
+  if (availablePairIds.includes(preferredPairId)) {
+    return preferredPairId
+  }
+  return availablePairIds[0] ?? ""
+}

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react"
 import DayBarsChart from "@/components/DayBarsChart"
 import SelectControl from "@/components/SelectControl"
+import { defaultPairId } from "@/lib/commute-pairs"
 import { parseSamplingGate } from "@/lib/config"
 import { loadDashboardMeasurements } from "@/lib/data"
 import type { DaySample } from "@/lib/day-samples"
@@ -59,9 +60,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const params = await searchParams
   const pairValues = distinctPairIds(measurements)
   const dayValues = distinctLocalDates(measurements, gate.timezone)
-  const today = zonedParts(new Date(), gate.timezone).isoDate
-  const pairId = pickParam(params.pair, pairValues, pairValues[0] ?? "")
-  const isoDate = pickParam(params.day, dayValues, defaultDayValue(dayValues, today))
+  const localNow = zonedParts(new Date(), gate.timezone)
+  const pairId = pickParam(params.pair, pairValues, defaultPairId(localNow.minutesOfDay, pairValues))
+  const isoDate = pickParam(params.day, dayValues, defaultDayValue(dayValues, localNow.isoDate))
   const urlParams = { pair: pairId, day: isoDate }
   const pairOptions = pairValues.map(controlOption)
   const dayOptions = dayValues.map(controlOption)

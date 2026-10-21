@@ -24,8 +24,36 @@ test("parseSamplingGate rejects an invalid interval and timezone", () => {
   assert.throws(() => parseSamplingGate({ TIMEZONE: "Mars/Olympus" }), /TIMEZONE/)
 })
 
+test("parseSamplingGate treats blank values as defaults", () => {
+  assert.deepEqual(parseSamplingGate({ SAMPLE_INTERVAL_MINUTES: "   ", TIMEZONE: "  " }), {
+    sampleIntervalMinutes: 5,
+    timezone: "Europe/Warsaw",
+  })
+})
+
+test("parseSamplingGate rejects non-positive, fractional and non-numeric intervals", () => {
+  for (const interval of ["0", "-5", "5.5", "five"]) {
+    assert.throws(
+      () => parseSamplingGate({ SAMPLE_INTERVAL_MINUTES: interval }),
+      /SAMPLE_INTERVAL_MINUTES/,
+      `interval ${interval} must be rejected`,
+    )
+  }
+})
+
 test("parseConfig requires GOOGLE_MAPS_API_KEY", () => {
   assert.throws(() => parseConfig({ TIMEZONE: "Europe/Warsaw" }), /GOOGLE_MAPS_API_KEY is required/)
+})
+
+test("parseConfig rejects a blank key", () => {
+  assert.throws(() => parseConfig({ GOOGLE_MAPS_API_KEY: "   " }), /GOOGLE_MAPS_API_KEY is required/)
+})
+
+test("parseConfig trims the key and passes interval and timezone through", () => {
+  const config = parseConfig({ GOOGLE_MAPS_API_KEY: "  key  ", SAMPLE_INTERVAL_MINUTES: "10", TIMEZONE: "America/New_York" })
+  assert.equal(config.apiKey, "key")
+  assert.equal(config.sampleIntervalMinutes, 10)
+  assert.equal(config.timezone, "America/New_York")
 })
 
 test("parseConfig uses the coded commute pairs with their windows", () => {

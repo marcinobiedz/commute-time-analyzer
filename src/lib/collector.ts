@@ -1,6 +1,6 @@
 import type { CollectorConfig } from "./types"
 import { collectMatrixSample } from "./routes-matrix"
-import type { RoutesFailure } from "./routes-matrix"
+import type { MatrixOutcome, RoutesFailure } from "./routes-matrix"
 import { appendMeasurements } from "./collector-writer"
 import { activePairsAt } from "./schedule"
 
@@ -22,14 +22,22 @@ export async function runTick(
   if (activePairs.length === 0) {
     return { sampledAt, pairs: 0, usable: 0, failure: null }
   }
-  const tickConfig: CollectorConfig = { ...config, pairs: activePairs }
-  const outcome = await collectMatrixSample(tickConfig, sampledAt, shutdown)
-  const measurements = outcome.ok ? outcome.measurements : []
+  const outcomes = await Promise.all(activePairs.map((pair) => collectMatrixSample({ ...config, pairs: [pair] }, sampledAt, shutdown)))
+  const measurements = outcomes.flatMap((outcome) => (outcome.ok ? outcome.measurements : []))
   await appendMeasurements(dataDir, measurements)
   return {
     sampledAt,
     pairs: activePairs.length,
     usable: measurements.length,
-    failure: outcome.ok ? null : outcome.failure,
+    failure: firstFailure(outcomes),
   }
+}
+
+function firstFailure(outcomes: readonly MatrixOutcome[]): RoutesFailure | null {
+  for (const outcome of outcomes) {
+    if (!outcome.ok) {
+      return outcome.failure
+    }
+  }
+  return null
 }

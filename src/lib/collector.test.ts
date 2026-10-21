@@ -82,6 +82,54 @@ test("runTick appends parsed measurements on a successful matrix call", async ()
   }
 })
 
+test("runTick sends one matrix request per active pair", async () => {
+  const dir = await tempDataDir()
+  const bodies: string[] = []
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = async (input, init): Promise<Response> => {
+    void input
+    bodies.push(String(init?.body))
+    const body = JSON.stringify([{ originIndex: 0, destinationIndex: 0, duration: "1000s", staticDuration: "900s", distanceMeters: 8000 }])
+    return new Response(body, { status: 200 })
+  }
+  try {
+    const report = await runTick(config, dir, new Date(SAMPLED_AT), AbortSignal.timeout(30000))
+    assert.equal(bodies.length, 2)
+    for (const body of bodies) {
+      assert.equal((body.match(/"waypoint"/g) ?? []).length, 2)
+    }
+    assert.ok(bodies.some((body) => body.includes("O1") && body.includes("D1")))
+    assert.ok(bodies.some((body) => body.includes("O2") && body.includes("D2")))
+    assert.equal(report.usable, 2)
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+})
+
+test("runTick writes the successful pair when the other request fails", async () => {
+  const dir = await tempDataDir()
+  let callCount = 0
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = async (): Promise<Response> => {
+    callCount += 1
+    if (callCount === 1) {
+      return new Response("denied", { status: 403, statusText: "Forbidden" })
+    }
+    const body = JSON.stringify([{ originIndex: 0, destinationIndex: 0, duration: "1000s", staticDuration: "900s", distanceMeters: 8000 }])
+    return new Response(body, { status: 200 })
+  }
+  try {
+    const report = await runTick(config, dir, new Date(SAMPLED_AT), AbortSignal.timeout(30000))
+    assert.equal(report.pairs, 2)
+    assert.equal(report.usable, 1)
+    assert.ok(report.failure != null)
+    const content = await readFile(path.join(dir, "2026-10-16.jsonl"), "utf8")
+    assert.equal(content.trimEnd().split("\n").length, 1)
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+})
+
 test("runTick collects only the pairs whose window contains the tick", async () => {
   const dir = await tempDataDir()
   const windowedConfig: CollectorConfig = {

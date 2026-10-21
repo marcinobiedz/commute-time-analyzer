@@ -2,8 +2,8 @@ import assert from "node:assert/strict"
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import path from "node:path"
-import { test } from "node:test"
-import { loadDashboardMeasurements, readMeasurementFiles } from "./data"
+import { afterEach, test } from "node:test"
+import { invalidateDashboardMeasurements, loadDashboardMeasurements, readMeasurementFiles } from "./data"
 import type { Measurement } from "./types"
 
 function sampleRow(pairId: string, sampledAt: string): Measurement {
@@ -70,6 +70,10 @@ test("committed fixture corpus loads sorted through its directory", async () => 
   }
 })
 
+afterEach(() => {
+  invalidateDashboardMeasurements()
+})
+
 test("loadDashboardMeasurements caches successes but retries after a rejected load", async () => {
   const root = mkdtempSync(path.join(tmpdir(), "commute-cache-"))
   const rawDir = path.join(root, "data", "raw")
@@ -94,8 +98,8 @@ test("loadDashboardMeasurements caches successes but retries after a rejected lo
   }
 })
 
-test("loadDashboardMeasurements picks up appended rows without a restart", async () => {
-  const root = mkdtempSync(path.join(tmpdir(), "commute-live-"))
+test("loadDashboardMeasurements keeps its snapshot until it is invalidated", async () => {
+  const root = mkdtempSync(path.join(tmpdir(), "commute-snapshot-"))
   const rawDir = path.join(root, "data", "raw")
   mkdirSync(rawDir, { recursive: true })
   const corpusFile = path.join(rawDir, "2026-01-06.jsonl")
@@ -109,9 +113,12 @@ test("loadDashboardMeasurements picks up appended rows without a restart", async
     assert.deepEqual(firstLoad.map((row) => row.sampledAt), [firstSample])
     writeFileSync(corpusFile, `${serializeRow(sampleRow("p1", firstSample))}\n${serializeRow(sampleRow("p1", secondSample))}\n`)
     const secondLoad = await loadDashboardMeasurements()
-    assert.deepEqual(secondLoad.map((row) => row.sampledAt), [firstSample, secondSample])
-    assert.notEqual(secondLoad, firstLoad)
-    assert.equal(await loadDashboardMeasurements(), secondLoad)
+    assert.equal(secondLoad, firstLoad)
+    assert.deepEqual(secondLoad.map((row) => row.sampledAt), [firstSample])
+    invalidateDashboardMeasurements()
+    const thirdLoad = await loadDashboardMeasurements()
+    assert.deepEqual(thirdLoad.map((row) => row.sampledAt), [firstSample, secondSample])
+    assert.equal(await loadDashboardMeasurements(), thirdLoad)
   } finally {
     process.chdir(previousCwd)
     rmSync(root, { recursive: true, force: true })

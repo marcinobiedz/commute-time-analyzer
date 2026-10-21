@@ -4,6 +4,7 @@ import IconButton from "@mui/material/IconButton"
 import { useRouter } from "next/navigation"
 import type { ReactNode } from "react"
 import { useTransition } from "react"
+import { refreshDashboardData } from "@/app/actions"
 import { iconButtonSx } from "./iconButtonStyle"
 
 function RefreshIcon(): ReactNode {
@@ -18,7 +19,8 @@ export default function RefreshButton() {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const refresh = () => {
-    startTransition(() => {
+    startTransition(async () => {
+      await refreshDashboardData()
       router.refresh()
     })
   }

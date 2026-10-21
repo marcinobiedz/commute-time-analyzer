@@ -48,8 +48,9 @@ Check the key without starting the collector: `npm run check:key` queries the AP
   direction follows local time: outbound before 14:00, return from 14:00. The **Today** link
   clears the day param and keeps the chosen route; the **Refresh** button re-fetches the server data
   on demand.
-- The dashboard re-checks the corpus on every request and re-reads only when the files change, so
-  new samples and new days appear without a restart.
+- The dashboard renders the snapshot it loaded and keeps serving it: samples the collector writes
+  later become visible only after you press **Refresh**, which re-reads `data/raw` and re-renders
+  the page. Nothing is re-read on its own between refreshes.
 
 **Cost note:** each pair samples only inside its own window — 97 outbound ticks plus 121 return
 ticks per weekday = **218 billable elements per weekday**, about 4,700/month. At 12:00 both windows

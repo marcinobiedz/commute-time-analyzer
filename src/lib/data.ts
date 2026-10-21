@@ -1,5 +1,5 @@
 import { createReadStream } from "node:fs"
-import { readdir, stat } from "node:fs/promises"
+import { readdir } from "node:fs/promises"
 import path from "node:path"
 import { createInterface } from "node:readline"
 import { compareStrings } from "./compare"
@@ -17,18 +17,18 @@ export async function readMeasurementFiles(dirs: readonly string[]): Promise<rea
   return sortMeasurements(measurements)
 }
 
-type CachedCorpus = {
-  readonly signature: string
-  readonly measurements: readonly Measurement[]
-}
-
-let cachedCorpus: CachedCorpus | null = null
+let cachedSnapshot: readonly Measurement[] | null = null
 
 let inFlightLoad: Promise<readonly Measurement[]> | null = null
 
+let loadGeneration = 0
+
 export function loadDashboardMeasurements(): Promise<readonly Measurement[]> {
+  if (cachedSnapshot != null) {
+    return Promise.resolve(cachedSnapshot)
+  }
   if (inFlightLoad == null) {
-    const load = startCorpusLoad()
+    const load = startCorpusLoad(loadGeneration)
     inFlightLoad = load
     const clearInFlight = () => {
       if (inFlightLoad === load) {
@@ -40,26 +40,18 @@ export function loadDashboardMeasurements(): Promise<readonly Measurement[]> {
   return inFlightLoad
 }
 
-async function startCorpusLoad(): Promise<readonly Measurement[]> {
-  const dirs = defaultDataDirs()
-  const signature = await corpusSignature(dirs)
-  if (cachedCorpus != null && cachedCorpus.signature === signature) {
-    return cachedCorpus.measurements
+export function invalidateDashboardMeasurements(): void {
+  loadGeneration += 1
+  cachedSnapshot = null
+  inFlightLoad = null
+}
+
+async function startCorpusLoad(generation: number): Promise<readonly Measurement[]> {
+  const measurements = await readMeasurementFiles(defaultDataDirs())
+  if (generation === loadGeneration) {
+    cachedSnapshot = measurements
   }
-  const measurements = await readMeasurementFiles(dirs)
-  cachedCorpus = { signature, measurements }
   return measurements
-}
-
-async function corpusSignature(dirs: readonly string[]): Promise<string> {
-  const filePaths = await resolveJsonlPaths(dirs)
-  const fileSignatures = await Promise.all(filePaths.map(fileSignature))
-  return fileSignatures.sort(compareStrings).join("|")
-}
-
-async function fileSignature(filePath: string): Promise<string> {
-  const stats = await stat(filePath)
-  return `${filePath}:${Math.round(stats.mtimeMs)}:${stats.size}`
 }
 
 async function resolveJsonlPaths(dirs: readonly string[]): Promise<readonly string[]> {

@@ -7,6 +7,7 @@ import {
   distinctPairIds,
   formatClockLabel,
   formatDurationLabel,
+  delayColor,
   pickParam,
 } from "./presentation"
 import { zonedParts } from "./schedule"
@@ -23,10 +24,23 @@ test("formatClockLabel zero-pads and wraps past midnight", () => {
   assert.equal(formatClockLabel(1440), "00:00")
 })
 
-test("formatDurationLabel renders minutes:seconds without rounding input", () => {
-  assert.equal(formatDurationLabel(1119), "18:39")
-  assert.equal(formatDurationLabel(90), "1:30")
-  assert.equal(formatDurationLabel(0), "0:00")
+test("formatDurationLabel renders hours, minutes and seconds with spaced unit letters", () => {
+  assert.equal(formatDurationLabel(5277), "1 h 27 m 57 s")
+  assert.equal(formatDurationLabel(1255), "20 m 55 s")
+  assert.equal(formatDurationLabel(90), "1 m 30 s")
+  assert.equal(formatDurationLabel(3600), "1 h")
+  assert.equal(formatDurationLabel(3660), "1 h 1 m")
+  assert.equal(formatDurationLabel(3601), "1 h 1 s")
+  assert.equal(formatDurationLabel(0), "0 s")
+})
+
+test("delayColor runs green to red as traffic time exceeds the static time", () => {
+  assert.equal(delayColor(1000, 1000), "hsl(120, 70%, 45%)")
+  assert.equal(delayColor(900, 1000), "hsl(120, 70%, 45%)")
+  assert.equal(delayColor(1300, 1000), "hsl(60, 70%, 45%)")
+  assert.equal(delayColor(1600, 1000), "hsl(0, 70%, 45%)")
+  assert.equal(delayColor(3000, 1000), "hsl(0, 70%, 45%)")
+  assert.equal(delayColor(1000, 0), "hsl(120, 70%, 45%)")
 })
 
 test("distinctPairIds dedupes and sorts", () => {

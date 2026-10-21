@@ -20,8 +20,8 @@ test("localDaySamples filters by pair, local day and ok status, and maps labels"
     errorRow("home-work", "2026-08-17T04:10:00.000Z"),
   ]
   assert.deepEqual(localDaySamples(rows, "Europe/Warsaw", "home-work", "2026-08-17"), [
-    { key: "2026-08-17T04:00:00.000Z", minutesOfDay: 360, timeLabel: "06:00", durationInTrafficSeconds: 1200 },
-    { key: "2026-08-17T04:05:00.000Z", minutesOfDay: 365, timeLabel: "06:05", durationInTrafficSeconds: 1260 },
+    { key: "2026-08-17T04:00:00.000Z", minutesOfDay: 360, timeLabel: "06:00", durationInTrafficSeconds: 1200, staticDurationSeconds: 600 },
+    { key: "2026-08-17T04:05:00.000Z", minutesOfDay: 365, timeLabel: "06:05", durationInTrafficSeconds: 1260, staticDurationSeconds: 600 },
   ])
 })
 

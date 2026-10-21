@@ -7,6 +7,7 @@ export type DaySample = {
   readonly minutesOfDay: number
   readonly timeLabel: string
   readonly durationInTrafficSeconds: number
+  readonly staticDurationSeconds: number
 }
 
 export function localDaySamples(
@@ -29,6 +30,7 @@ export function localDaySamples(
       minutesOfDay: parts.minutesOfDay,
       timeLabel: formatClockLabel(parts.minutesOfDay),
       durationInTrafficSeconds: measurement.durationInTrafficSeconds,
+      staticDurationSeconds: measurement.durationSeconds,
     })
   }
   return samples.sort(compareByTimeOfDay)

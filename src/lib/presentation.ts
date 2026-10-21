@@ -5,7 +5,14 @@ import type { Measurement } from "./types"
 
 const MINUTES_PER_DAY = 1440
 
-export const BAR_COLOR = "#3987e5"
+const MAX_DELAY_RATIO = 0.6
+
+export function delayColor(trafficSeconds: number, staticSeconds: number): string {
+  const delayRatio = staticSeconds <= 0 ? 0 : (trafficSeconds - staticSeconds) / staticSeconds
+  const clampedRatio = Math.min(Math.max(delayRatio, 0), MAX_DELAY_RATIO)
+  const hue = Math.round(120 * (1 - clampedRatio / MAX_DELAY_RATIO))
+  return `hsl(${hue}, 70%, 45%)`
+}
 
 const AXIS_INK = "#8a8178"
 
@@ -43,7 +50,20 @@ export function formatClockLabel(minutesOfDay: number): string {
 }
 
 export function formatDurationLabel(seconds: number): string {
-  return `${Math.floor(seconds / 60)}:${pad2(seconds % 60)}`
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  const remainingSeconds = seconds % 60
+  const parts: string[] = []
+  if (hours > 0) {
+    parts.push(`${hours} h`)
+  }
+  if (minutes > 0) {
+    parts.push(`${minutes} m`)
+  }
+  if (remainingSeconds > 0 || parts.length === 0) {
+    parts.push(`${remainingSeconds} s`)
+  }
+  return parts.join(" ")
 }
 
 export function tooltipDuration(value: TooltipValueType | undefined): string {

@@ -75,7 +75,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       <div>
         <h1 className="text-xl font-semibold">Commute time</h1>
         <p className="mt-1 text-sm text-[var(--muted)]">
-          Traffic-aware drive time, one bar per 5-minute sample. Data refreshes when the server restarts.
+          Traffic-aware drive time, one bar per 5-minute sample. New samples appear as they are collected.
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-4">
           <SelectControl label="Route" name="pair" options={pairOptions} selected={pairId} params={urlParams} />

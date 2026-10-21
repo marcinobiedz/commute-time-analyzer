@@ -278,5 +278,6 @@ All green work committed; the working tree is clean apart from the ephemeral rev
 
 - **Board:** T-042 (`1b26ccf + 0b7cfe6 + bf46246`), T-043 and T-044 APPROVED; T-045 REVERTED; no open findings; no unreviewed commits after this docs commit.
 - **What the session delivered:** the dashboard serves a snapshot that only the Refresh button moves (file-stamp signal + `revalidatePath`), the collector logs only its start and failures, noon belongs to the return route, and the temporary window extension used to prove the click live is gone again.
-- **Human actions owed:** commit this docs-only ledger/README change (the master's `git commit` is denied by the permission layer), and restart the collector for the 22:00 window.
+- **Human actions owed:** restart the collector for the 22:00 window. (The docs-only ledger/README change lands in this commit; the permission-layer denial stays above as history, not as an open obligation.)
 - **Resume trigger:** a new human directive or a new ledger row.
+- **2026-10-21 — T-045 round 1: R-045-1 fixed.** Trigger: `REVIEW.md` `[T-045] 9226947: CHANGES_REQUESTED` (R-045-1 — the pause point listed the docs commit as still owed inside the very commit that landed it). The bullet now reads: the docs-only change lands in this commit and only the collector restart remains owed. No other line changed; the case is the R-035-1/R-036-1 self-reference class, and the reviewer's rule is adopted for future pause points — list only actions that exist after the commit containing them.

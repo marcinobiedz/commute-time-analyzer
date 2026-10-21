@@ -1,5 +1,5 @@
 import { createReadStream } from "node:fs"
-import { readdir } from "node:fs/promises"
+import { mkdir, readFile, readdir, writeFile } from "node:fs/promises"
 import path from "node:path"
 import { createInterface } from "node:readline"
 import { compareStrings } from "./compare"
@@ -17,18 +17,18 @@ export async function readMeasurementFiles(dirs: readonly string[]): Promise<rea
   return sortMeasurements(measurements)
 }
 
-let cachedSnapshot: readonly Measurement[] | null = null
+type CachedCorpus = {
+  readonly cacheKey: string
+  readonly measurements: readonly Measurement[]
+}
+
+let cachedCorpus: CachedCorpus | null = null
 
 let inFlightLoad: Promise<readonly Measurement[]> | null = null
 
-let loadGeneration = 0
-
 export function loadDashboardMeasurements(): Promise<readonly Measurement[]> {
-  if (cachedSnapshot != null) {
-    return Promise.resolve(cachedSnapshot)
-  }
   if (inFlightLoad == null) {
-    const load = startCorpusLoad(loadGeneration)
+    const load = startCorpusLoad()
     inFlightLoad = load
     const clearInFlight = () => {
       if (inFlightLoad === load) {
@@ -40,18 +40,35 @@ export function loadDashboardMeasurements(): Promise<readonly Measurement[]> {
   return inFlightLoad
 }
 
-export function invalidateDashboardMeasurements(): void {
-  loadGeneration += 1
-  cachedSnapshot = null
-  inFlightLoad = null
+export async function requestDashboardRefresh(): Promise<void> {
+  const stampPath = refreshStampPath()
+  await mkdir(path.dirname(stampPath), { recursive: true })
+  await writeFile(stampPath, String(Date.now()))
 }
 
-async function startCorpusLoad(generation: number): Promise<readonly Measurement[]> {
-  const measurements = await readMeasurementFiles(defaultDataDirs())
-  if (generation === loadGeneration) {
-    cachedSnapshot = measurements
+async function startCorpusLoad(): Promise<readonly Measurement[]> {
+  const cacheKey = `${process.cwd()}|${await readRefreshStamp()}`
+  if (cachedCorpus != null && cachedCorpus.cacheKey === cacheKey) {
+    return cachedCorpus.measurements
   }
+  const measurements = await readMeasurementFiles(defaultDataDirs())
+  cachedCorpus = { cacheKey, measurements }
   return measurements
+}
+
+function refreshStampPath(): string {
+  return path.join(process.cwd(), "data", "refresh-stamp")
+}
+
+async function readRefreshStamp(): Promise<string> {
+  try {
+    return await readFile(refreshStampPath(), "utf8")
+  } catch (error: unknown) {
+    if (isMissingEntry(error)) {
+      return ""
+    }
+    throw error
+  }
 }
 
 async function resolveJsonlPaths(dirs: readonly string[]): Promise<readonly string[]> {
@@ -72,14 +89,14 @@ async function listJsonlFiles(dir: string): Promise<readonly string[]> {
     const entries = await readdir(dir)
     return entries.filter((entry) => entry.endsWith(".jsonl"))
   } catch (error: unknown) {
-    if (isMissingDirectory(error)) {
+    if (isMissingEntry(error)) {
       return []
     }
     throw error
   }
 }
 
-function isMissingDirectory(error: unknown): boolean {
+function isMissingEntry(error: unknown): boolean {
   return error instanceof Error && "code" in error && error.code === "ENOENT"
 }
 

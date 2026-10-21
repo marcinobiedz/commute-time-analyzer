@@ -14,6 +14,9 @@ npm-debug.log*
 # Collected measurements — live collector output, never committed
 data/raw/
 
+# Dashboard snapshot signal — written by the Refresh action, never committed
+data/refresh-stamp
+
 # Agent scratch: logs, screenshots, generated JSON, review worktrees — disposable, never committed
 .tmp/
 .worktrees/

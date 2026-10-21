@@ -64,15 +64,15 @@ test("parseConfig uses the coded commute pairs with their windows", () => {
       label: "Zgierz → Warszawa",
       origin: "Chemików 7, 95-100 Zgierz",
       destination: "Studio B sp. z o.o., Łucka 9, 00-842 Warszawa",
-      windowStartMinutes: 300,
-      windowEndMinutes: 660,
+      windowStartMinutes: 240,
+      windowEndMinutes: 720,
     },
     {
       id: "waw-zgo",
       label: "Warszawa → Zgierz",
       origin: "Prosta 66, 00-847 Warszawa",
       destination: "Chemików 7, 95-100 Zgierz",
-      windowStartMinutes: 900,
+      windowStartMinutes: 720,
       windowEndMinutes: 1320,
     },
   ])

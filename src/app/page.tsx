@@ -1,3 +1,4 @@
+import Link from "next/link"
 import type { ReactNode } from "react"
 import DayBarsChart from "@/components/DayBarsChart"
 import SelectControl from "@/components/SelectControl"
@@ -6,7 +7,7 @@ import { parseSamplingGate } from "@/lib/config"
 import { loadDashboardMeasurements } from "@/lib/data"
 import type { DaySample } from "@/lib/day-samples"
 import { defaultDayValue, localDaySamples, recentSamples } from "@/lib/day-samples"
-import { controlOption, delayCellStyle, distinctLocalDates, distinctPairIds, formatDurationLabel, pickParam } from "@/lib/presentation"
+import { buildTodayUrl, controlOption, delayCellStyle, distinctLocalDates, distinctPairIds, formatDurationLabel, pickParam } from "@/lib/presentation"
 import { zonedParts } from "@/lib/schedule"
 
 type HomePageProps = {
@@ -64,6 +65,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const pairId = pickParam(params.pair, pairValues, defaultPairId(localNow.minutesOfDay, pairValues))
   const isoDate = pickParam(params.day, dayValues, defaultDayValue(dayValues, localNow.isoDate))
   const urlParams = { pair: pairId, day: isoDate }
+  const todayUrl = buildTodayUrl(pairId)
   const pairOptions = pairValues.map(controlOption)
   const dayOptions = dayValues.map(controlOption)
   const samples = localDaySamples(measurements, gate.timezone, pairId, isoDate)
@@ -78,6 +80,12 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         <div className="mt-4 flex flex-wrap items-center gap-4">
           <SelectControl label="Route" name="pair" options={pairOptions} selected={pairId} params={urlParams} />
           <SelectControl label="Day" name="day" options={dayOptions} selected={isoDate} params={urlParams} />
+          <Link
+            href={todayUrl}
+            className="inline-flex h-10 items-center rounded border border-stone-300 px-4 text-sm font-medium hover:bg-stone-100 dark:border-stone-700 dark:hover:bg-stone-800"
+          >
+            Today
+          </Link>
         </div>
       </div>
       <section>

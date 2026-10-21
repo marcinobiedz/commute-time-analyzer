@@ -2,6 +2,7 @@ import assert from "node:assert/strict"
 import { test } from "node:test"
 import {
   buildControlsUrl,
+  buildTodayUrl,
   controlOption,
   distinctLocalDates,
   distinctPairIds,
@@ -73,6 +74,11 @@ test("pickParam keeps a known value and falls back otherwise", () => {
 
 test("buildControlsUrl merges params and overrides the touched one", () => {
   assert.equal(buildControlsUrl("/", { pair: "a", day: "2026-08-17" }, "day", "2026-08-18"), "/?pair=a&day=2026-08-18")
+})
+
+test("buildTodayUrl keeps the pair and clears the day", () => {
+  assert.equal(buildTodayUrl("zgo-waw"), "/?pair=zgo-waw")
+  assert.equal(buildTodayUrl(""), "/")
 })
 
 test("controlOption labels the value itself", () => {

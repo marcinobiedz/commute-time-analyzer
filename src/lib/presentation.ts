@@ -60,6 +60,13 @@ export function buildControlsUrl(pathname: string, params: Readonly<Record<strin
   return `${pathname}?${search.toString()}`
 }
 
+export function buildTodayUrl(pairId: string): string {
+  if (pairId === "") {
+    return "/"
+  }
+  return `/?${new URLSearchParams({ pair: pairId }).toString()}`
+}
+
 export function pickParam(raw: string | string[] | undefined, values: readonly string[], fallback: string): string {
   if (typeof raw === "string" && values.includes(raw)) {
     return raw

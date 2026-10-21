@@ -32,7 +32,7 @@ function chartContent(samples: readonly DaySample[]): ReactNode {
   if (samples.length === 0) {
     return emptyDayNote()
   }
-  return <div className="mt-3"><DayBarsChart samples={samples} /></div>
+  return <div className="mt-3 -mx-2 sm:mx-0"><DayBarsChart samples={samples} /></div>
 }
 
 function tableContent(recent: readonly DaySample[]): ReactNode {

@@ -23,10 +23,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="min-h-screen">
         <ServiceWorkerRegistrar />
         <ThemeProviders>
-          <header className="flex items-center border-b border-stone-200 px-6 py-3 dark:border-stone-800">
+          <header className="flex items-center border-b border-stone-200 px-4 py-3 dark:border-stone-800 sm:px-6">
             <span className="font-semibold">Commute time</span>
           </header>
-          <main className="px-6 py-6 max-w-6xl mx-auto">{children}</main>
+          <main className="px-2 py-6 max-w-6xl mx-auto sm:px-6">{children}</main>
         </ThemeProviders>
       </body>
     </html>

@@ -35,8 +35,9 @@ body {
 }
 
 .dashboard-chart .recharts-cartesian-axis-tick text {
-  fill: var(--muted);
-  font-size: 12px;
+  fill: var(--fg);
+  font-size: 13px;
+  opacity: 0.85;
 }
 
 .dashboard-chart .recharts-legend-item-text {

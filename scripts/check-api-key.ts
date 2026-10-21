@@ -20,7 +20,7 @@ async function main(): Promise<void> {
     installMockFetch(config.pairs)
     console.log("mock mode: replaying a synthetic matrix response, no network call")
   } else {
-    console.log(`querying computeRoutesMatrix for ${config.pairs.length} pair(s) using GOOGLE_MAPS_API_KEY from the environment`)
+    console.log(`querying computeRouteMatrix for ${config.pairs.length} pair(s) using GOOGLE_MAPS_API_KEY from the environment`)
   }
   const outcome = await collectMatrixSample(config, new Date().toISOString(), AbortSignal.timeout(120000))
   report(outcome, config.pairs.length)

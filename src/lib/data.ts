@@ -7,7 +7,7 @@ import { parseMeasurementLine } from "./jsonl"
 import type { Measurement } from "./types"
 
 export function defaultDataDirs(): readonly string[] {
-  return [path.join(process.cwd(), "data", "raw"), path.join(process.cwd(), "data", "sample")]
+  return [path.join(process.cwd(), "data", "raw")]
 }
 
 export async function readMeasurementFiles(dirs: readonly string[]): Promise<readonly Measurement[]> {

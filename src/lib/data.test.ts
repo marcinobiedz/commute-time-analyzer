@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import path from "node:path"
 import { test } from "node:test"
-import { defaultDataDirs, loadDashboardMeasurements, readMeasurementFiles } from "./data"
+import { loadDashboardMeasurements, readMeasurementFiles } from "./data"
 import type { Measurement } from "./types"
 
 function sampleRow(pairId: string, sampledAt: string): Measurement {
@@ -61,8 +61,9 @@ test("missing directories are treated as empty, unreadable lines are rejected", 
   }
 })
 
-test("committed corpus loads sorted through the default dirs", async () => {
-  const rows = await readMeasurementFiles(defaultDataDirs())
+test("committed fixture corpus loads sorted through its directory", async () => {
+  const sampleDir = path.join(process.cwd(), "data", "sample")
+  const rows = await readMeasurementFiles([sampleDir])
   assert.ok(rows.length >= 7720)
   for (let index = 1; index < rows.length; index++) {
     assert.ok(rows[index - 1].sampledAt <= rows[index].sampledAt)
@@ -71,9 +72,9 @@ test("committed corpus loads sorted through the default dirs", async () => {
 
 test("loadDashboardMeasurements caches successes but retries after a rejected load", async () => {
   const root = mkdtempSync(path.join(tmpdir(), "commute-cache-"))
-  const sampleDir = path.join(root, "data", "sample")
-  mkdirSync(sampleDir, { recursive: true })
-  const corpusFile = path.join(sampleDir, "2026-01-05.jsonl")
+  const rawDir = path.join(root, "data", "raw")
+  mkdirSync(rawDir, { recursive: true })
+  const corpusFile = path.join(rawDir, "2026-01-05.jsonl")
   writeFileSync(corpusFile, "this is not json\n")
   const previousCwd = process.cwd()
   process.chdir(root)

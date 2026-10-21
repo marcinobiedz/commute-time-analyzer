@@ -53,7 +53,9 @@ Both review files live only on disk — watch them, don't commit them.
    categories: Code quality and Process).
 2. **Diff** — `git show <hash>`; when the working tree is dirty, review the committed state
    (`git show <hash>:<path>`), not WIP on disk.
-3. **Mechanical checks** — run the repo's own checks (typecheck, lint; whatever `package.json` / CI defines).
+3. **Mechanical checks** — run the repo's own checks (typecheck, lint; whatever `package.json` / CI defines), within
+   `AGENTS.md § Environment & verification`: no installs, no `npx`, no servers — verify live pages through the Chrome
+   DevTools MCP against the human's running instance; scratch output goes to `.tmp/` inside the repo, never outside it.
    **No** destructive regenerations by the reviewer (e.g. a data-rebuild step that overwrites committed generated
    output) — check such output statically instead.
 4. **Data claims** — verify the master's numbers with read-only queries against the committed data (reading is

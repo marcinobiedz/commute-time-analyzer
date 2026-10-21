@@ -51,6 +51,11 @@ git status --short                 # only task-scoped files staged (never `git a
 <build / regenerate>               # only if the task touches those steps
 ```
 
+Run only the checks permitted by `AGENTS.md § Environment & verification` — typecheck, lint, build, tests. Never
+install packages, invoke `npx`, or start/kill servers: the human runs them, and live pages are verified through the
+Chrome DevTools MCP against the already-running URL. A missing tool is a question to the human, not an install. Every scratch artifact (logs, screenshots, worktrees) goes in `.tmp/` inside the
+repo — never `%TEMP%`, `/tmp`, or the Desktop.
+
 Plus a task-specific correctness check when applicable — recompute a known reference value from the data/source and
 confirm it (derive the reference from the repo, not from this skill).
 

@@ -55,6 +55,24 @@ Polemics are wanted; unbounded loops are not. Every exchange is event-triggered 
 - **Ledger-only / docs-only commits** receive a one-line scope-check verdict and never trigger more than one corrective commit.
 - **Board-zero handshake (quiet exit)**: no open findings, no unreviewed commits, nothing `IN_PROGRESS` ⇒ the master commits a PAUSE POINT ledger entry, the reviewer writes `BOARD 0 — queue empty, going quiet` as the last line of `REVIEW.md`, and both sessions go idle. Any later write or commit must cite a new trigger event.
 
+## Environment & verification (human directive 2026-10-21)
+
+The human owns the runtime. Agents verify statically and in-browser; they never provision.
+
+- **Allowed checks**: `npm run typecheck`, `npm run lint`, `npm run build`, `npm test`, and `node` scripts that produce a task-required artifact. Nothing else.
+- **`npm` only — never `npx`.** `npx` can fetch and run any package, which defeats this allowlist. Run only what is already installed, through the `package.json` scripts. If a tool or library is not installed, stop and ask the human — never install it, and never reach for `npx`/`npm exec` to pull it in on demand.
+- **Forbidden**: any package install or lockfile change (`npm install`, `npm ci`, `npm i`, `npm add`, `npm update`, `yarn`, `pnpm`, `bun`, `npx`); starting, restarting or killing servers (`npm run dev`, `npm run start`, `next dev`, `next start`, `taskkill`); network probes (`curl`). A denied install is escalated to the human in `TASKS.md`, never retried.
+- **Servers are human-run.** When a check needs the app running, ask the human to start it and verify through the Chrome DevTools MCP (`mcp__chrome-devtools`) against the already-running URL. Never start a server "just to check".
+- **New dependencies** remain task-entry + reviewer-approval only (see Style); this section narrows who installs them: the human does.
+
+### Scratch files — the repo is the only workspace
+
+- Every temporary artifact — logs, screenshots, generated JSON, copied fixtures, review worktrees, server output — lives under `.tmp/` at the repo root (git-ignored). Never `%TEMP%`, `/tmp`, `AppData`, `~/.claude`, or the Desktop.
+- Name them by purpose: `.tmp/server.log`, `.tmp/review-wt/<hash>/`, `.tmp/screenshots/<task>.png`. Delete them when the task's verdict lands, and at session end.
+- Reviewer worktrees: `git worktree add .worktrees/<hash>` inside the repo — never a sibling folder outside it.
+- `.tmp/` is disposable by definition: nothing durable may live there; durable state belongs in `TASKS.md`, `REVIEW.md` or the repo itself.
+- Writing outside the repository is a blocking Process finding. If a tool insists on an external location, record it in `TASKS.md` instead of working around it.
+
 ## JS/TS/Node baseline — safe yet fast
 
 The reviewer enforces this section as a blocking bar (its skill points here, never copies it).

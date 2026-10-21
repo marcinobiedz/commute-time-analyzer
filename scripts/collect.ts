@@ -1,3 +1,4 @@
+import "dotenv/config"
 import cron from "node-cron"
 import { parseConfig } from "../src/lib/config"
 import { runTick } from "../src/lib/collector"

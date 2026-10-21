@@ -8,12 +8,13 @@
     "start": "next start",
     "lint": "next lint && next lint --dir scripts",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test \"src/**/*.test.ts\"",
-    "check:key": "node --env-file-if-exists=.env --import tsx scripts/check-api-key.ts",
-    "collect": "node --env-file-if-exists=.env --import tsx scripts/collect.ts",
-    "fixtures": "node --import tsx scripts/generate-fixtures.ts"
+    "test": "tsx --test \"src/**/*.test.ts\"",
+    "check:key": "tsx scripts/check-api-key.ts",
+    "collect": "tsx scripts/collect.ts",
+    "fixtures": "tsx scripts/generate-fixtures.ts"
   },
   "dependencies": {
+    "dotenv": "^16.4.5",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@mui/material": "^9.5.0",

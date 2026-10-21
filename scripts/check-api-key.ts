@@ -1,3 +1,4 @@
+import "dotenv/config"
 import { parseConfig } from "../src/lib/config"
 import { collectMatrixSample } from "../src/lib/routes-matrix"
 import { buildMatrixLayout } from "../src/lib/routes-response"

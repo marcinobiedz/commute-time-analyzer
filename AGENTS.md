@@ -22,7 +22,7 @@
 
 - **Collector** (long-running Node script) polls the Google **Routes API** (`computeRoutesMatrix`, traffic-aware) every 5 minutes, Monday–Friday, for each configured origin→destination pair, and appends one JSON line per pair per tick to `data/raw/<UTC-date>.jsonl` (append-only, JSONL).
 - One measurement = `{ pairId, sampledAt, status, durationSeconds, durationInTrafficSeconds, distanceMeters }` — `sampledAt` is UTC ISO 8601; durations are integer seconds; failed ticks are stored with `status: "error"` (no duration values) so gaps are analyzable, and the UI filters to `status: "ok"`.
-- Configuration (API key, pairs, sampling window, timezone) lives in `.env.local` (git-ignored) and is parsed/validated at startup — the collector refuses to run on invalid config.
+- Configuration (API key, pairs, sampling window, timezone) lives in `.env` (git-ignored) and is parsed/validated at startup — the collector refuses to run on invalid config.
 - Local time is derived at analysis/display only (configurable IANA timezone); storage and scheduling comparisons use UTC.
 - The exact schema is owned by `src/lib/types.ts`; any change to it is a task-ledger event.
 

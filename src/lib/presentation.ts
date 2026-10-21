@@ -7,11 +7,19 @@ const MINUTES_PER_DAY = 1440
 
 const MAX_DELAY_RATIO = 0.6
 
-export function delayColor(trafficSeconds: number, staticSeconds: number): string {
+function delayHue(trafficSeconds: number, staticSeconds: number): number {
   const delayRatio = staticSeconds <= 0 ? 0 : (trafficSeconds - staticSeconds) / staticSeconds
   const clampedRatio = Math.min(Math.max(delayRatio, 0), MAX_DELAY_RATIO)
-  const hue = Math.round(120 * (1 - clampedRatio / MAX_DELAY_RATIO))
-  return `hsl(${hue}, 70%, 45%)`
+  return Math.round(120 * (1 - clampedRatio / MAX_DELAY_RATIO))
+}
+
+export function delayColor(trafficSeconds: number, staticSeconds: number): string {
+  return `hsl(${delayHue(trafficSeconds, staticSeconds)}, 70%, 45%)`
+}
+
+export function delayTextColor(trafficSeconds: number, staticSeconds: number): string {
+  const hue = delayHue(trafficSeconds, staticSeconds)
+  return `light-dark(hsl(${hue}, 70%, 28%), hsl(${hue}, 80%, 62%))`
 }
 
 const AXIS_INK = "#8a8178"

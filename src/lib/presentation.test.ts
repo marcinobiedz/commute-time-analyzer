@@ -8,6 +8,7 @@ import {
   formatClockLabel,
   formatDurationLabel,
   delayColor,
+  delayTextColor,
   pickParam,
 } from "./presentation"
 import { zonedParts } from "./schedule"
@@ -41,6 +42,12 @@ test("delayColor runs green to red as traffic time exceeds the static time", () 
   assert.equal(delayColor(1600, 1000), "hsl(0, 70%, 45%)")
   assert.equal(delayColor(3000, 1000), "hsl(0, 70%, 45%)")
   assert.equal(delayColor(1000, 0), "hsl(120, 70%, 45%)")
+})
+
+test("delayTextColor uses the same hue with theme-aware lightness", () => {
+  assert.equal(delayTextColor(1000, 1000), "light-dark(hsl(120, 70%, 28%), hsl(120, 80%, 62%))")
+  assert.equal(delayTextColor(1300, 1000), "light-dark(hsl(60, 70%, 28%), hsl(60, 80%, 62%))")
+  assert.equal(delayTextColor(1600, 1000), "light-dark(hsl(0, 70%, 28%), hsl(0, 80%, 62%))")
 })
 
 test("distinctPairIds dedupes and sorts", () => {

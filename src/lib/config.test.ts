@@ -31,30 +31,29 @@ test("parseSamplingGate rejects invalid window, interval and timezone", () => {
   assert.throws(() => parseSamplingGate({ TIMEZONE: "Mars/Olympus" }), /TIMEZONE/)
 })
 
-test("parseConfig still rejects inverted windows before requiring key or pairs", () => {
+test("parseConfig still rejects inverted windows before requiring the key", () => {
   assert.throws(() => parseConfig({ WINDOW_START: "06:30", WINDOW_END: "05:00" }), /must not be after/)
   assert.throws(() => parseConfig({ TIMEZONE: "Europe/Warsaw" }), /GOOGLE_MAPS_API_KEY is required/)
 })
 
-test("parseConfig reads per-pair windows and falls back to the gate window", () => {
-  const config = parseConfig({
-    GOOGLE_MAPS_API_KEY: "k",
-    WINDOW_START: "06:00",
-    WINDOW_END: "20:00",
-    ROUTE_PAIRS: JSON.stringify([
-      { id: "outbound", label: "Out", origin: "O", destination: "D", windowStart: "05:00", windowEnd: "11:00" },
-      { id: "return", label: "Back", origin: "D", destination: "O" },
-    ]),
-  })
+test("parseConfig uses the coded commute pairs with their windows", () => {
+  const config = parseConfig({ GOOGLE_MAPS_API_KEY: "k" })
   assert.deepEqual(config.pairs, [
-    { id: "outbound", label: "Out", origin: "O", destination: "D", windowStartMinutes: 300, windowEndMinutes: 660 },
-    { id: "return", label: "Back", origin: "D", destination: "O", windowStartMinutes: 360, windowEndMinutes: 1200 },
+    {
+      id: "zgo-waw",
+      label: "Zgierz → Warszawa",
+      origin: "Chemików 7, 95-100 Zgierz",
+      destination: "Studio B sp. z o.o., Łucka 9, 00-842 Warszawa",
+      windowStartMinutes: 300,
+      windowEndMinutes: 660,
+    },
+    {
+      id: "waw-zgo",
+      label: "Warszawa → Zgierz",
+      origin: "Prosta 66, 00-847 Warszawa",
+      destination: "Chemików 7, 95-100 Zgierz",
+      windowStartMinutes: 900,
+      windowEndMinutes: 1320,
+    },
   ])
-})
-
-test("parseConfig rejects an inverted pair window and non-string window values", () => {
-  const inverted = JSON.stringify([{ id: "a", label: "A", origin: "O", destination: "D", windowStart: "11:00", windowEnd: "05:00" }])
-  assert.throws(() => parseConfig({ GOOGLE_MAPS_API_KEY: "k", ROUTE_PAIRS: inverted }), /windowStart must not be after windowEnd/)
-  const numeric = JSON.stringify([{ id: "a", label: "A", origin: "O", destination: "D", windowStart: 300 }])
-  assert.throws(() => parseConfig({ GOOGLE_MAPS_API_KEY: "k", ROUTE_PAIRS: numeric }), /windowStart must be a local clock time/)
 })

@@ -7,9 +7,6 @@ import type { MatrixOutcome, RoutesFailure } from "../src/lib/routes-matrix"
 import type { PairPosition } from "../src/lib/routes-response"
 import type { Measurement, RoutePair } from "../src/lib/types"
 
-const DEFAULT_CHECK_PAIRS = JSON.stringify([
-  { id: "key-check", label: "Key check", origin: "Palac Kultury i Nauki, Warszawa", destination: "Lotnisko Chopina, Warszawa" },
-])
 const MOCK_API_KEY = "mock-key-never-sent"
 const MOCK_TRAFFIC_SECONDS = "1012s"
 const MOCK_STATIC_SECONDS = "900s"
@@ -18,8 +15,7 @@ async function main(): Promise<void> {
   const mock = process.argv.includes("--mock")
   const env: Record<string, string | undefined> = process.env
   const apiKey = trimmedIfPresent(env.GOOGLE_MAPS_API_KEY) ?? (mock ? MOCK_API_KEY : undefined)
-  const pairs = trimmedIfPresent(env.ROUTE_PAIRS) ?? DEFAULT_CHECK_PAIRS
-  const config = parseConfig({ ...env, GOOGLE_MAPS_API_KEY: apiKey, ROUTE_PAIRS: pairs })
+  const config = parseConfig({ ...env, GOOGLE_MAPS_API_KEY: apiKey })
   if (mock) {
     installMockFetch(config.pairs)
     console.log("mock mode: replaying a synthetic matrix response, no network call")
@@ -57,7 +53,7 @@ function report(outcome: MatrixOutcome): void {
   }
   const usable = outcome.measurements.filter((measurement) => measurement.status === "ok")
   if (usable.length === 0) {
-    console.error("FAILED: HTTP 200 but no pair returned usable durations — check ROUTE_PAIRS addresses or API restrictions")
+    console.error("FAILED: HTTP 200 but no pair returned usable durations — check the coded commute pair addresses or API restrictions")
     process.exitCode = 1
     return
   }

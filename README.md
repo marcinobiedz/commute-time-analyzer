@@ -41,9 +41,8 @@ Check the key without starting the collector: `npm run check:key` queries the AP
 
 ## Operating
 
-- Sampling runs every 5 minutes Monday–Friday, all day in both directions (00:00–23:59
-  Europe/Warsaw). The per-pair windows are code constants in `src/lib/commute-pairs.ts`; the union
-  of those windows is the only gate — there is no global window.
+- Sampling windows are code constants (Europe/Warsaw, Monday–Friday): outbound 05:00–11:00,
+  return 15:00–22:00. The union of the pair windows is the only gate — there is no global window.
 - Day and route selection live in URL search params (`/?pair=zgo-waw&day=2026-10-21`); the
   default day is today when present, otherwise the latest collected day. With no route param the
   direction follows local time: outbound before 14:00, return from 14:00. The **Today** link
@@ -51,10 +50,11 @@ Check the key without starting the collector: `npm run check:key` queries the AP
 - The dashboard re-checks the corpus on every request and re-reads only when the files change, so
   new samples and new days appear without a restart.
 
-**Cost note:** both pairs sample every 5 minutes — 288 ticks per weekday — and each tick sends one
-request per pair with one origin and one destination: **576 billable elements per weekday**, about
-12,500/month. Separate per-pair requests avoid the origin × destination cross product (which would
-bill 1,152). `check:key` queries both pairs at once (4 elements) — use it sparingly. Edit the
+**Cost note:** each pair samples only inside its own window — 73 outbound ticks plus 85 return
+ticks per weekday = **158 billable elements per weekday**, about 3,300/month. Each tick sends one
+request for the one active pair (one origin × one destination), so it is one element; the per-pair
+request shape from T-034 also prevents an origin × destination cross product if windows ever
+overlap. `check:key` queries both pairs at once (4 elements, 2 useful) — use it sparingly. Edit the
 windows in `src/lib/commute-pairs.ts` to trade coverage for cost.
 
 ## Scripts

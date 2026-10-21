@@ -16,7 +16,7 @@
 - No new dependencies without a task entry + reviewer approval. Sanctioned chart/UI stack: **Recharts** for charts, **MUI (@mui/material + @mui/material-nextjs + emotion)** for interactive controls (pickers, sliders, fields); any other chart or component library still needs this same process.
 - Server Components by default. Collected data is read from `data/raw/*.jsonl` server-side via a memoized data layer (`src/lib/data.ts`); **no client-side fetch of datasets**, no API routes unless pagination is proven necessary.
 - Numbers: keep raw values as parsed (no rounding in the data layer); round only in UI formatting.
-- Collected data (`data/raw/**`) is never hand-edited — it is collector output. Committed sample fixtures (`data/sample/**`) are produced only by the fixture script, never by hand.
+- Collected data (`data/raw/**`) is never hand-edited — it is collector output. Committed test fixtures (`src/test-fixtures/**`) are produced only by the fixture script, never by hand.
 
 ## Data contract
 

@@ -62,7 +62,7 @@ test("missing directories are treated as empty, unreadable lines are rejected", 
 })
 
 test("committed fixture corpus loads sorted through its directory", async () => {
-  const sampleDir = path.join(process.cwd(), "data", "sample")
+  const sampleDir = path.join(process.cwd(), "src", "test-fixtures")
   const rows = await readMeasurementFiles([sampleDir])
   assert.ok(rows.length >= 7720)
   for (let index = 1; index < rows.length; index++) {

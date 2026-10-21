@@ -3,7 +3,7 @@ import path from "node:path"
 import { groupMeasurementsByUtcDay, serializeLines } from "../src/lib/collector-writer"
 import { buildFixtureMeasurements, DEFAULT_FIXTURE_SPEC } from "../src/lib/fixtures"
 
-const SAMPLE_DIR = path.join(process.cwd(), "data", "sample")
+const SAMPLE_DIR = path.join(process.cwd(), "src", "test-fixtures")
 
 function main(): void {
   const measurements = buildFixtureMeasurements(DEFAULT_FIXTURE_SPEC)

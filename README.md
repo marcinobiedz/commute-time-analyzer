@@ -36,8 +36,8 @@ Check the key without starting the collector: `npm run check:key` queries the AP
   `sampledAt` is UTC ISO 8601; durations are integer seconds.
 - **Only successful measurements are written.** A failed request or an unusable response writes
   nothing, so a missing 5-minute slot is the failure signal.
-- `status` stays in the schema so legacy rows and the committed fixtures (`data/sample`) still
-  parse; the dashboard shows `status: "ok"` only.
+- `status` stays in the schema so legacy rows and the committed test fixtures (`src/test-fixtures`)
+  still parse; the dashboard shows `status: "ok"` only.
 
 ## Operating
 

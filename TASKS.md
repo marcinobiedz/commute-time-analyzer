@@ -91,7 +91,7 @@ Decisions taken from the human's answers to the intake questions:
 | T-041 | PM2 deployment: one command starts the dashboard and the collector (human directive 2026-10-21) | 7f872f4 + 26d1215 | APPROVED |
 | T-042 | Dashboard shows a snapshot: new collector rows appear only after pressing Refresh (human directive 2026-10-21; supersedes T-031's live re-read) | 1b26ccf | APPROVED |
 | T-043 | Collector logs only process start and failures (human directive 2026-10-21) | 6763f5a | APPROVED |
-| T-044 | Noon belongs to the return route: the outbound window ends at 11:59 (human directive 2026-10-21) | — | COMMITTED |
+| T-044 | Noon belongs to the return route: the outbound window ends at 11:59 (human directive 2026-10-21) | 313aa56 | APPROVED |
 
 Sequencing note: the rows above are the only status record — read them, not prose. One task = one commit; if a task grows past its scope mid-flight, log the discovery and split it in the ledger before committing.
 
@@ -255,3 +255,12 @@ All green work committed; the working tree is clean apart from the ephemeral rev
 
 - **2026-10-21 — T-044 intake: 12:00 samples only the return route (human directive, recorded before implementation).** Human: *"tałozmy że o tej 12 to juz wysyła ten powrotny"*. Today both windows include 12:00 (both ends inclusive, T-036), so that one tick fires two 1×1 requests and bills 2 elements. Scope: the outbound window ends at **11:59** (`12 * 60 - 1`), so its last grid tick is 11:55 and 12:00 belongs solely to the return pair — one request per tick again, 96 outbound + 121 return = **217 billable elements/weekday** instead of 218. No schedule logic changes: windows stay inclusive at both ends and the per-pair request shape from T-034 stays (it is what makes a future overlap cheap-proof). `config.test.ts` pins the new end; README, the ledger goal/window/schedule prose and the cost note are corrected.
 - **2026-10-21 — T-044 built: noon is the return's alone.** `COMMUTE_PAIRS[0].windowEndMinutes` is `12 * 60 - 1` (11:59), so the outbound grid ends at 11:55 and `activePairsAt` returns only `waw-zgo` at 12:00 — the noon tick sends one 1×1 request again. `config.test.ts` pins `719` and a new schedule test (`the coded windows leave noon to the return route alone`) asserts `["zgo-waw"]` at 11:55 and `["waw-zgo"]` at 12:00 against the real `COMMUTE_PAIRS`, so the directive is locked by behaviour, not only by a constant. Weekday cost: 96 outbound + 121 return = **217 elements** (~4,700/month); README windows/cost notes and the ledger goal/window/schedule prose carry the dated amendment. No schedule logic changed — windows stay inclusive at both ends. Verification: `npm run typecheck` ✓, `npm run lint` both dirs ✓, `npm test` **85/85** ✓. Build not re-run: one integer constant plus tests/docs, no rendered surface touched; the build at `1b26ccf` is green.
+- **2026-10-21 — T-044 APPROVED on the reviewer's `313aa56` verdict; row pinned.** `REVIEW.md` records `[T-044] 313aa56: APPROVED — no findings` (rollup `:67` and the full section), including the independent tick recount (96 + 121 = 217) and a confirmation that the noon boundary is asserted in behaviour against the real `COMMUTE_PAIRS`. Both notes are accepted as recorded: the running collector keeps the old windows until it is restarted (at most one extra element at tomorrow's noon tick, no data impact), and the Window bullet's amendment chain stays as written while the pipeline is live.
+
+## PAUSE POINT — 2026-10-21 (session 10)
+
+- **Board at zero.** T-042, T-043 and T-044 are APPROVED; every other row is APPROVED, SUPERSEDED or WITHDRAWN; no open findings, nothing `IN_PROGRESS`, no unreviewed code.
+- **Session-10 chain:** `313aa56` T-044 noon windows · this ledger flip and pause point.
+- **Human actions owed (runtime only):** restart the dashboard and the collector so the T-042/T-043/T-044 code is live — until then the page re-reads on every request, the collector logs every tick, and noon still samples both routes.
+- **Review queue at stop:** only this ledger-only commit, which takes a one-line scope check; the reviewer's `BOARD 0` line closes the thread from here.
+- **Resume trigger:** a new human directive or a new ledger row.

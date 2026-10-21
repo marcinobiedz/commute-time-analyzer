@@ -67,9 +67,9 @@ The human owns the runtime. Agents verify statically and in-browser; they never 
 
 ### Scratch files — the repo is the only workspace
 
-- Every temporary artifact — logs, screenshots, generated JSON, copied fixtures, review worktrees, server output — lives under `.tmp/` at the repo root (git-ignored). Never `%TEMP%`, `/tmp`, `AppData`, `~/.claude`, or the Desktop.
-- Name them by purpose: `.tmp/server.log`, `.tmp/review-wt/<hash>/`, `.tmp/screenshots/<task>.png`. Delete them when the task's verdict lands, and at session end.
-- Reviewer worktrees: `git worktree add .worktrees/<hash>` inside the repo — never a sibling folder outside it.
+- Every temporary artifact — logs, screenshots, generated JSON, copied fixtures, server output — lives under `.tmp/` at the repo root (git-ignored). Never `%TEMP%`, `/tmp`, `AppData`, `~/.claude`, or the Desktop.
+- Name them by purpose: `.tmp/server.log`, `.tmp/review/<task>/`, `.tmp/screenshots/<task>.png`. Delete them when the task's verdict lands, and at session end.
+- **Gates run against the cumulative committed HEAD — no worktrees, no per-commit snapshots** (human directive 2026-10-21). Each new commit is reviewed against the state it produces at HEAD; when the working tree is dirty with the other role's uncommitted work, never gate on that WIP — review the committed state and run the gates once the tree is clean at a commit.
 - `.tmp/` is disposable by definition: nothing durable may live there; durable state belongs in `TASKS.md`, `REVIEW.md` or the repo itself.
 - Writing outside the repository is a blocking Process finding. If a tool insists on an external location, record it in `TASKS.md` instead of working around it.
 

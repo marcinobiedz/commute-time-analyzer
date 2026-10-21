@@ -56,6 +56,9 @@ Both review files live only on disk — watch them, don't commit them.
 3. **Mechanical checks** — run the repo's own checks (typecheck, lint; whatever `package.json` / CI defines), within
    `AGENTS.md § Environment & verification`: no installs, no `npx`, no servers — verify live pages through the Chrome
    DevTools MCP against the human's running instance; scratch output goes to `.tmp/` inside the repo, never outside it.
+   **Cumulative HEAD only — no worktrees or per-commit snapshots** (human directive 2026-10-21): review each commit
+   against the state it produces at HEAD, and if the working tree is dirty with the master's WIP, do not gate on it —
+   wait for the next commit and run the gates on the clean tree.
    **No** destructive regenerations by the reviewer (e.g. a data-rebuild step that overwrites committed generated
    output) — check such output statically instead.
 4. **Data claims** — verify the master's numbers with read-only queries against the committed data (reading is

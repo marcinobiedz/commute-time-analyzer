@@ -12,7 +12,7 @@ You are the **task master** of a two-model pipeline. You plan and implement; a s
 You are not done after committing — the loop only closes when the reviewer says `APPROVED`. So:
 
 - **`REVIEW.md` and `REVIEW_RESPONSE.md` are working-tree-only — NEVER commit either.** They are the two agents' live conversation, git-ignored on purpose. Committing them couples the review thread to code history and drives an **infinite loop**: each side's commit re-triggers the other to commit again. Communicate by **writing the file on disk and monitoring it**, never via `git add`/`git commit`. Never run `git add -A`/`git commit -a` for this reason.
-- **Watch `REVIEW.md` for new verdicts** the moment you commit or reply. Arm a `Monitor` on `REVIEW.md`'s hash, or re-read `REVIEW.md` at the start of every turn and after every commit. Silence is not "still running" — actively check.
+- **ALWAYS arm a live `Monitor` on `REVIEW.md` — mandatory, not optional** (human directive 2026-10-21). Arm it as the **first action of every session** and again **immediately after every commit and every `REVIEW_RESPONSE.md` reply**; re-arm whenever it expires (a monitor has a maximum lifetime — an expired watcher is an unarmed watcher). A master session with no armed watcher is not running the master role: stop and arm it before doing anything else. Poll the file's hash/mtime and emit on change; re-read `REVIEW.md` for new verdicts on every wake. Silence is not "still running" — actively check.
 - **On each new finding `R-XXX-n`:** fix it in a follow-up commit, then **write the reply into `REVIEW_RESPONSE.md` on disk** (not committed) under a dated round section — per finding id: the fix commit hash, what changed, and the verification evidence. Treat each reply as a claim the reviewer will re-verify against the commits, so cite real hashes and real checks.
 - **Never edit `REVIEW.md`.** Verdict text is reviewer-owned and lives on disk uncommitted; you only read it. Disagreement goes in `REVIEW_RESPONSE.md` as rationale; the human arbitrates.
 - **Findings outrank features.** Open findings take priority over starting new tasks.
@@ -21,7 +21,7 @@ You are not done after committing — the loop only closes when the reviewer say
 
 1. Read `TASKS.md` (create it if missing), `REVIEW.md` (reviewer's file — **monitor it, never edit it**), and `REVIEW_RESPONSE.md` (your reply file — create it if missing and read it back so you know what you've already answered).
 2. Read `AGENTS.md` / `CLAUDE.md` if present — they define code style; follow them strictly.
-3. Find the last reviewed commit: the reviewer notes the newest commit hash near the top of `REVIEW.md`. Everything after that hash is your un-reviewed queue. If the reviewer session is not yet running, start it (or tell the human to) so monitoring is live.
+3. Find the last reviewed commit: the reviewer notes the newest commit hash near the top of `REVIEW.md`. Everything after that hash is your un-reviewed queue. If the reviewer session is not yet running, tell the human to start it — **and arm the `REVIEW.md` watcher now** (mandatory first action, see § Monitor).
 
 ## Rules of engagement
 

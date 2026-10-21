@@ -83,8 +83,9 @@ root on the server, as the user that owns the checkout.
 
 4. Verify the key once: `npm run check:key` (4 billable elements).
 5. Build the dashboard: `npm run build`.
-6. Make sure `data/raw` is writable (it is created on the first successful tick). It must contain no
-   fixture data — the test corpus lives in `src/test-fixtures`, never in `data/`.
+6. Make sure `data/` is writable: `data/raw` is created on the first successful tick, and the Refresh
+   action writes the small `data/refresh-stamp` file next to it. `data/raw` must contain no fixture
+   data — the test corpus lives in `src/test-fixtures`, never in `data/`.
 
 **Start**
 

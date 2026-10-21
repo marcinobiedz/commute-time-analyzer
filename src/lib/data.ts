@@ -6,7 +6,7 @@ import { compareStrings } from "./compare"
 import { parseMeasurementLine } from "./jsonl"
 import type { Measurement } from "./types"
 
-export function defaultDataDirs(): readonly string[] {
+function defaultDataDirs(): readonly string[] {
   return [path.join(process.cwd(), "data", "raw")]
 }
 

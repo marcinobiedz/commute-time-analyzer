@@ -73,7 +73,7 @@ test("runTick appends parsed measurements on a successful matrix call", async ()
   globalThis.fetch = async (): Promise<Response> => new Response(body, { status: 200 })
   try {
     const report = await runTick(config, dir, new Date(SAMPLED_AT), AbortSignal.timeout(30000))
-    assert.deepEqual(report, { sampledAt: SAMPLED_AT, pairs: 2, usable: 2, failure: null })
+    assert.equal(report, null)
     const content = await readFile(path.join(dir, "2026-10-16.jsonl"), "utf8")
     const parsed = content.trimEnd().split("\n").map((line) => parseMeasurementLine(line))
     assert.equal(parsed[0].status, "ok")
@@ -100,7 +100,7 @@ test("runTick sends one matrix request per active pair", async () => {
     }
     assert.ok(bodies.some((body) => body.includes("O1") && body.includes("D1")))
     assert.ok(bodies.some((body) => body.includes("O2") && body.includes("D2")))
-    assert.equal(report.usable, 2)
+    assert.equal(report, null)
   } finally {
     globalThis.fetch = originalFetch
   }
@@ -120,9 +120,7 @@ test("runTick writes the successful pair when the other request fails", async ()
   }
   try {
     const report = await runTick(config, dir, new Date(SAMPLED_AT), AbortSignal.timeout(30000))
-    assert.equal(report.pairs, 2)
-    assert.equal(report.usable, 1)
-    assert.ok(report.failure != null)
+    assert.equal(report?.kind, "http")
     const content = await readFile(path.join(dir, "2026-10-16.jsonl"), "utf8")
     assert.equal(content.trimEnd().split("\n").length, 1)
   } finally {
@@ -144,7 +142,7 @@ test("runTick collects only the pairs whose window contains the tick", async () 
   globalThis.fetch = async (): Promise<Response> => new Response(body, { status: 200 })
   try {
     const report = await runTick(windowedConfig, dir, new Date(SAMPLED_AT), AbortSignal.timeout(30000))
-    assert.deepEqual(report, { sampledAt: SAMPLED_AT, pairs: 1, usable: 1, failure: null })
+    assert.equal(report, null)
     const content = await readFile(path.join(dir, "2026-10-16.jsonl"), "utf8")
     const parsed = content.trimEnd().split("\n").map((line) => parseMeasurementLine(line))
     assert.deepEqual(parsed.map((measurement) => measurement.pairId), ["work"])
@@ -163,7 +161,7 @@ test("runTick writes nothing when no pair window contains the tick", async () =>
     ],
   }
   const report = await runTick(closedConfig, dir, new Date(SAMPLED_AT), AbortSignal.timeout(30000))
-  assert.deepEqual(report, { sampledAt: SAMPLED_AT, pairs: 0, usable: 0, failure: null })
+  assert.equal(report, null)
   await assert.rejects(() => readFile(path.join(dir, "2026-10-16.jsonl"), "utf8"))
 })
 
@@ -173,10 +171,7 @@ test("runTick writes nothing when the whole call fails", async () => {
   globalThis.fetch = async (): Promise<Response> => new Response("denied", { status: 403, statusText: "Forbidden" })
   try {
     const report = await runTick(config, dir, new Date(SAMPLED_AT), AbortSignal.timeout(30000))
-    assert.equal(report.usable, 0)
-    assert.equal(report.pairs, 2)
-    assert.ok(report.failure != null)
-    assert.equal(report.failure.kind, "http")
+    assert.equal(report?.kind, "http")
     await assert.rejects(() => readFile(path.join(dir, "2026-10-16.jsonl"), "utf8"))
   } finally {
     globalThis.fetch = originalFetch

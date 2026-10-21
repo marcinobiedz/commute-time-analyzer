@@ -48,6 +48,8 @@ Check the key without starting the collector: `npm run check:key` queries the AP
   direction follows local time: outbound before 14:00, return from 14:00. The **Today** link
   clears the day param and keeps the chosen route; the **Refresh** button re-fetches the server data
   on demand.
+- The collector logs only its startup line and its failures. A successful tick prints nothing; a
+  failed tick prints one JSON line with the failure kind, and a crashed tick one with the error.
 - The dashboard renders the snapshot it loaded and keeps serving it: samples the collector writes
   later become visible only after you press **Refresh**, which re-reads `data/raw` and re-renders
   the page. Nothing is re-read on its own between refreshes.

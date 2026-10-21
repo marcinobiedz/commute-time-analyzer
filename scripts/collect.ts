@@ -5,6 +5,7 @@ import { runTick } from "../src/lib/collector"
 import { defaultDataDir, ensureDataDir } from "../src/lib/collector-writer"
 import { shouldSampleAt } from "../src/lib/schedule"
 import { logEvent } from "../src/lib/log-event"
+import type { RoutesFailure } from "../src/lib/routes-matrix"
 import type { CollectorConfig, RoutePair } from "../src/lib/types"
 
 type TickState = { busy: boolean; inFlight: Promise<void> }
@@ -35,15 +36,20 @@ function startTick(state: TickState, config: CollectorConfig, dataDir: string, s
   }
   state.busy = true
   state.inFlight = runTick(config, dataDir, new Date(), shutdown.signal)
-    .then((report) => logEvent(report.failure == null ? "info" : "warn", "tick", { ...report }))
+    .then(logTickFailure)
     .catch((error: unknown) => logEvent("error", "tick-crashed", { message: errorMessage(error) }))
     .finally(() => {
       state.busy = false
     })
 }
 
+function logTickFailure(failure: RoutesFailure | null): void {
+  if (failure != null) {
+    logEvent("warn", "tick-failed", { ...failure })
+  }
+}
+
 function stopAll(state: TickState, task: { stop(): void }, shutdown: AbortController): void {
-  logEvent("info", "collector-shutdown", {})
   task.stop()
   shutdown.abort()
   state.inFlight.then(() => process.exit(0))

@@ -98,6 +98,29 @@ test("loadDashboardMeasurements caches successes but retries after a rejected lo
   }
 })
 
+test("loadDashboardMeasurements does not re-cache a load that an invalidation overtook", async () => {
+  const root = mkdtempSync(path.join(tmpdir(), "commute-stale-"))
+  const rawDir = path.join(root, "data", "raw")
+  mkdirSync(rawDir, { recursive: true })
+  const corpusFile = path.join(rawDir, "2026-01-07.jsonl")
+  const firstSample = "2026-01-07T06:00:00.000Z"
+  const secondSample = "2026-01-07T06:05:00.000Z"
+  writeFileSync(corpusFile, `${serializeRow(sampleRow("p1", firstSample))}\n`)
+  const previousCwd = process.cwd()
+  process.chdir(root)
+  try {
+    const overtakenLoad = loadDashboardMeasurements()
+    invalidateDashboardMeasurements()
+    await overtakenLoad
+    writeFileSync(corpusFile, `${serializeRow(sampleRow("p1", firstSample))}\n${serializeRow(sampleRow("p1", secondSample))}\n`)
+    const reloaded = await loadDashboardMeasurements()
+    assert.deepEqual(reloaded.map((row) => row.sampledAt), [firstSample, secondSample])
+  } finally {
+    process.chdir(previousCwd)
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
 test("loadDashboardMeasurements keeps its snapshot until it is invalidated", async () => {
   const root = mkdtempSync(path.join(tmpdir(), "commute-snapshot-"))
   const rawDir = path.join(root, "data", "raw")

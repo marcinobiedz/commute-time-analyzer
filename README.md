@@ -59,6 +59,68 @@ the one active pair, so it is one element. The per-pair request shape from T-034
 (4 elements, 2 useful) — use it sparingly. Edit the windows in `src/lib/commute-pairs.ts` to trade
 coverage for cost.
 
+## Server deployment (PM2)
+
+Two processes, one PM2 app config: the dashboard (`next start`) and the collector. Run from the repo
+root on the server, as the user that owns the checkout.
+
+**Before the first start**
+
+1. Node.js **20.6+** (22/24 recommended), `npm`, `git`, and PM2 installed globally
+   (`npm install -g pm2`).
+2. Check out the repo and install everything: `npm ci`. Keep devDependencies — `next build` and the
+   collector's `tsx` loader need them.
+3. Create `.env` in the repo root (git-ignored):
+
+   ```bash
+   GOOGLE_MAPS_API_KEY=...
+   # optional: TIMEZONE=Europe/Warsaw  SAMPLE_INTERVAL_MINUTES=5
+   ```
+
+4. Verify the key once: `npm run check:key` (4 billable elements).
+5. Build the dashboard: `npm run build`.
+6. Make sure `data/raw` is writable (it is created on the first successful tick). It must contain no
+   fixture data — the test corpus lives in `src/test-fixtures`, never in `data/`.
+
+**Start**
+
+```bash
+pm2 start ecosystem.config.js   # starts both apps
+pm2 save                        # persist the process list
+pm2 startup                     # run the sudo command it prints
+```
+
+`pm2 start ecosystem.config.js` starts `commute-dashboard` (port 3000) and `commute-collector`
+together.
+
+**Operate**
+
+```bash
+pm2 status
+pm2 logs commute-collector
+pm2 logs commute-dashboard
+pm2 restart commute-collector
+```
+
+**Update**
+
+```bash
+git pull
+npm ci
+npm run build
+pm2 reload commute-dashboard
+pm2 restart commute-collector
+```
+
+**Notes**
+
+- `next start` listens on `0.0.0.0:3000`; open the port or put nginx/a tunnel in front. The dashboard
+  has no authentication.
+- The collector derives Europe/Warsaw internally; the server's system timezone does not matter.
+- Run exactly one collector instance — two would double-sample the same tick.
+- `ecosystem.config.js` runs the collector as `node --import tsx scripts/collect.ts`, so PM2's
+  SIGTERM reaches the collector's graceful handler. This needs Node 20.6+.
+
 ## Scripts
 
 ```bash

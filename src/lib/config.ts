@@ -4,15 +4,15 @@ import { isRecord, parseJson, readRequiredString, trimmedIfPresent } from "./par
 
 const DEFAULT_INTERVAL_MINUTES = 5
 const DEFAULT_TIMEZONE = "Europe/Warsaw"
-const FULL_DAY_START_MINUTES = 0
-const FULL_DAY_END_MINUTES = 1439
+const DEFAULT_WINDOW_START_MINUTES = 5 * 60
+const DEFAULT_WINDOW_END_MINUTES = 21 * 60
 const CLOCK_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/
 
 export function parseSamplingGate(env: Record<string, string | undefined>): SamplingGate {
   return {
     sampleIntervalMinutes: readInterval(env.SAMPLE_INTERVAL_MINUTES),
-    windowStartMinutes: readWindowMinutes(env.WINDOW_START, FULL_DAY_START_MINUTES, "WINDOW_START"),
-    windowEndMinutes: readWindowMinutes(env.WINDOW_END, FULL_DAY_END_MINUTES, "WINDOW_END"),
+    windowStartMinutes: readWindowMinutes(env.WINDOW_START, DEFAULT_WINDOW_START_MINUTES, "WINDOW_START"),
+    windowEndMinutes: readWindowMinutes(env.WINDOW_END, DEFAULT_WINDOW_END_MINUTES, "WINDOW_END"),
     timezone: readTimezone(env.TIMEZONE),
   }
 }

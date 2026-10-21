@@ -2,11 +2,11 @@ import assert from "node:assert/strict"
 import { test } from "node:test"
 import { parseConfig, parseSamplingGate } from "./config"
 
-test("parseSamplingGate applies config defaults without requiring key or pairs", () => {
+test("parseSamplingGate defaults to 05:00–21:00 Europe/Warsaw without requiring key or pairs", () => {
   assert.deepEqual(parseSamplingGate({}), {
     sampleIntervalMinutes: 5,
-    windowStartMinutes: 0,
-    windowEndMinutes: 1439,
+    windowStartMinutes: 300,
+    windowEndMinutes: 1260,
     timezone: "Europe/Warsaw",
   })
 })

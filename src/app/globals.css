@@ -41,3 +41,21 @@ body {
 .dashboard-chart .recharts-legend-item-text {
   color: var(--muted) !important;
 }
+
+.samples-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.samples-table th,
+.samples-table td {
+  border-bottom: 1px solid color-mix(in srgb, var(--muted) 35%, transparent);
+  padding: 6px 8px;
+  text-align: left;
+}
+
+.samples-table .numeric {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}

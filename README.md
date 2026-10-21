@@ -46,7 +46,8 @@ Check the key without starting the collector: `npm run check:key` queries the AP
 - Day and route selection live in URL search params (`/?pair=zgo-waw&day=2026-10-21`); the
   default day is today when present, otherwise the latest collected day. With no route param the
   direction follows local time: outbound before 14:00, return from 14:00. The **Today** link
-  clears the day param and keeps the chosen route.
+  clears the day param and keeps the chosen route; the **Refresh** button re-fetches the server data
+  on demand.
 - The dashboard re-checks the corpus on every request and re-reads only when the files change, so
   new samples and new days appear without a restart.
 

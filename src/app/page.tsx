@@ -1,6 +1,7 @@
 import Link from "next/link"
 import type { ReactNode } from "react"
 import DayBarsChart from "@/components/DayBarsChart"
+import RefreshButton from "@/components/RefreshButton"
 import SelectControl from "@/components/SelectControl"
 import { defaultPairId } from "@/lib/commute-pairs"
 import { parseSamplingGate } from "@/lib/config"
@@ -86,6 +87,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           >
             Today
           </Link>
+          <RefreshButton />
         </div>
       </div>
       <section>

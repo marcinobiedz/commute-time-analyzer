@@ -2,7 +2,6 @@ import { parseConfig } from "../src/lib/config"
 import { collectMatrixSample } from "../src/lib/routes-matrix"
 import { buildMatrixLayout } from "../src/lib/routes-response"
 import { isRecord, trimmedIfPresent } from "../src/lib/parse"
-import { loadEnvFileIfExists } from "../src/lib/env-file"
 import type { MatrixOutcome, RoutesFailure } from "../src/lib/routes-matrix"
 import type { PairPosition } from "../src/lib/routes-response"
 import type { Measurement, RoutePair } from "../src/lib/types"
@@ -16,7 +15,6 @@ const MOCK_STATIC_SECONDS = "900s"
 
 async function main(): Promise<void> {
   const mock = process.argv.includes("--mock")
-  loadEnvFileIfExists()
   const env: Record<string, string | undefined> = process.env
   const apiKey = trimmedIfPresent(env.GOOGLE_MAPS_API_KEY) ?? (mock ? MOCK_API_KEY : undefined)
   const pairs = trimmedIfPresent(env.ROUTE_PAIRS) ?? DEFAULT_CHECK_PAIRS

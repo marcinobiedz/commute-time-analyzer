@@ -1,6 +1,5 @@
 import cron from "node-cron"
 import { parseConfig } from "../src/lib/config"
-import { loadEnvFileIfExists } from "../src/lib/env-file"
 import { runTick } from "../src/lib/collector"
 import { defaultDataDir, ensureDataDir } from "../src/lib/collector-writer"
 import { shouldSampleAt } from "../src/lib/schedule"
@@ -10,7 +9,6 @@ import type { CollectorConfig } from "../src/lib/types"
 type TickState = { busy: boolean; inFlight: Promise<void> }
 
 async function main(): Promise<void> {
-  loadEnvFileIfExists()
   const config = parseConfig(process.env)
   const dataDir = defaultDataDir()
   await ensureDataDir(dataDir)
